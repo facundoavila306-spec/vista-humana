@@ -1,10 +1,10 @@
-/* Vista Humana · service worker · mps21-v5.0.0
+/* Vista Humana · service worker · mps21-v5.2.0
    · Las páginas van primero a internet (así siempre hay versión nueva) y, sin señal, salen del teléfono.
    · Íconos y librerías se guardan en el teléfono.
    · Los datos (Firebase) NUNCA pasan por acá: van directo, con su propia seguridad. */
-const VERSION = 'mps21-v5.0.0';
+const VERSION = 'mps21-v5.2.0';
 const CACHE = 'vh-' + VERSION;
-const BASE = ['./', 'index.html', 'maestro.html', 'liquidacion.html', 'manifest.json', 'manifest-maestro.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon-32.png', 'apple-touch-icon.png'];
+const BASE = ['./', 'index.html', '404.html', 'maestro.html', 'liquidacion.html', 'manifest.json', 'manifest-maestro.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon-32.png', 'apple-touch-icon.png'];
 const LIBRERIAS = /^https:\/\/(www\.gstatic\.com\/firebasejs\/|cdnjs\.cloudflare\.com\/ajax\/libs\/)/;
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.all(BASE.map((u) => c.add(new Request(u, { cache: 'reload' })).catch(() => { })))).then(() => self.skipWaiting()));

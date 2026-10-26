@@ -1,0 +1,12 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vista Humana</title>
+<script>
+/* Direcciones cortas: .../ferreteria  ->  .../index.html?c=ferreteria */
+(function () {
+  var p = location.pathname.replace(/\/+$/, '');
+  var seg = decodeURIComponent(p.split('/').pop() || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  var base = p.slice(0, p.lastIndexOf('/') + 1);
+  var extra = location.search ? '&' + location.search.slice(1) : '';
+  if (seg && !/\.(html|js|json|png)$/i.test(p)) location.replace(base + 'index.html?c=' + encodeURIComponent(seg) + extra);
+  else location.replace(base + 'index.html');
+})();
+</script></head><body style="font-family:system-ui;background:#171531;color:#fff;display:grid;place-items:center;min-height:100vh">Abriendo…</body></html>

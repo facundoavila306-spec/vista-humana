@@ -1968,6 +1968,16 @@ function regMostrar(modo, dni, pin, alListo) {
   const titulo = modo === 'nuevo'
     ? `<div style="text-align:center">${ICO_CEL}</div><h3 style="text-align:center;margin:4px 0">Celular nuevo</h3>${regCaja('warn', 'Es la primera vez que entrás desde este celular. Por tu seguridad, te mandamos un enlace a tu mail para confirmarlo. <b>Se pide una sola vez por celular.</b>')}`
     : `<h3 style="margin:4px 0">Registrarme</h3><p class="nota">Poné tu DNI y el mail que le diste a RR.HH.</p>`;
+  if (window.VHC && VHC.muestra) {
+    regPintar(`<h3 style="margin:4px 0">Entrar a la muestra</h3>${regCaja('info', 'Esta es una <b>muestra con datos inventados</b>: no hace falta confirmar el celular con un mail.')}
+      <label for="regDni">DNI (sin puntos)</label><input id="regDni" inputmode="numeric" maxlength="8" value="${esc(REG.dni)}">
+      <div style="height:14px"></div><button class="btn" id="regEnviar">Entrar</button><div id="regError" class="login-error oculto"></div>
+      <button class="btn borde" id="regVolver" style="margin-top:8px">Volver</button>`);
+    $('regVolver').onclick = () => { regCerrar(); salirAuth(); };
+    $('regEnviar').onclick = () => regMuestra($('regDni').value);
+    if (modo === 'nuevo' && REG.dni) setTimeout(() => regMuestra(REG.dni), 50);
+    return;
+  }
   regPintar(`${titulo}
     <label for="regDni">DNI (sin puntos)</label><input id="regDni" inputmode="numeric" maxlength="8" value="${esc(REG.dni)}" ${modo === 'nuevo' ? 'readonly' : ''}>
     <label for="regMail">Tu mail</label><input id="regMail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="El que le diste a RR.HH.">
@@ -1979,6 +1989,18 @@ function regMostrar(modo, dni, pin, alListo) {
   $('regEnviar').onclick = regEnviar;
   $('regMail').onkeydown = (e) => { if (e.key === 'Enter') regEnviar(); };
   setTimeout(() => { const f = modo === 'nuevo' ? $('regMail') : $('regDni'); if (f) f.focus(); }, 50);
+}
+/* Cliente de MUESTRA (datos inventados): el celular se confirma solo, sin mail */
+async function regMuestra(dni) {
+  const err = $('regError'); if (err) err.classList.add('oculto');
+  dni = String(dni || '').replace(/\D/g, '');
+  if (dni.length < 7) { if (err) { err.textContent = 'Revisá el DNI.'; err.classList.remove('oculto'); } return; }
+  try {
+    REG.dni = dni;
+    const d = await prepararCelular(dni);
+    await R('cuentas/' + d.uid).set(dni);
+    regListo();
+  } catch (e) { console.warn('[muestra]', e); if (err) { err.textContent = 'Ese DNI no está en la muestra.'; err.classList.remove('oculto'); } }
 }
 async function regEnviar() {
   const dni = ($('regDni').value || '').replace(/\D/g, ''), mail = normMail($('regMail').value);
@@ -13669,7 +13691,7 @@ window.addEventListener('appinstalled', () => { const b = $('btnInstalar'); if (
 /* El cartelito de versión estaba escrito a mano ("v2.9.4") y quedó viejo hacía
    meses: Facundo lo leyó como la versión real y no coincidía con nada
    (08/09/2026). Ahora lo saca del service worker, que es la versión de verdad. */
-const APP_VER = '5.0.0';   // debe coincidir con VERSION del service-worker.js
+const APP_VER = '5.2.0';   // debe coincidir con VERSION del service-worker.js
 /* "Buscar actualización": borra la copia que el navegador guardó de la app (service worker y caché) y
    recarga. NO toca la sesión, las marcas pendientes ni nada de lo que vive en el teléfono. */
 async function actualizarVista() {

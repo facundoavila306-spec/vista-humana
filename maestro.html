@@ -151,9 +151,10 @@ input,select{min-height:44px}
     <p style="margin-top:6px">La suspensión automática se hace cuando abrís este panel.</p></div>
    <div class="card" data-sec="rrhh"><h3>Administrador de RR.HH.</h3><p>Es quien después carga a su gente y nombra a otros administradores. Entra con su DNI y los últimos 4 números del DNI, y confirma su celular con este mail.</p>
     <div class="f"><label>Nombre<input id="fAdmN"></label><label>DNI<input id="fAdmD" inputmode="numeric" maxlength="8"></label><label class="w">Mail<input id="fAdmM" type="email" autocapitalize="none"></label></div>
+    <div class="f"><label class="w">Código para entrar<input id="fCod" autocapitalize="none" maxlength="20"></label></div><p id="fCodAyuda" style="margin-top:4px"></p>
     <div class="box info">Dirección para la gente de este cliente (pasásela a su RR.HH.):</div>
     <div class="link"><span id="fLink"></span><button class="btn sec sm" id="btnCopiar">Copiar</button></div>
-    <p style="margin-top:8px">Código de la empresa (para la app instalada o el APK): <b id="fCod"></b></p></div>
+    <p style="margin-top:8px">En la app instalada o el APK, se entra escribiendo el código.</p></div>
   </div>
   <div class="prev"><div class="pv"><button class="on" id="pv1">Ingreso</button><button id="pv2">Adentro</button><button id="pv3">Panel RR.HH.</button></div><div class="phone" id="ph"></div><div class="cap" id="phCap">Así ve el ingreso su gente</div></div>
  </div></div>
@@ -524,6 +525,8 @@ async function sha256Hex(t) { const b = await crypto.subtle.digest('SHA-256', ty
 const azar = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map((b) => b.toString(16).padStart(2, '0')).join(''); };
 function toast(t, ms) { const e = $('toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(e._t); e._t = setTimeout(() => e.style.display = 'none', ms || 3200); }
 const urlCliente = (cid, extra) => new URL('index.html?c=' + cid + (extra || ''), location.href).href;
+const urlCorta = (cid) => new URL(cid, location.href).href;
+const RESERVADOS = ['index', 'maestro', 'liquidacion', 'manifest', 'icon', 'favicon', 'service-worker', 'admin', 'vh', 'c', 'api', 'www', 'app'];
 
 const MODS = [['fichaje', 'Fichaje con foto y ubicación'], ['presencia', 'Quién está trabajando'], ['recibos', 'Recibos y firma'], ['docs', 'Documentos y notificaciones'],
   ['pedidos', 'Pedidos, licencias y vacaciones'], ['epp', 'EPP'], ['cursos', 'Cursos y carnets'], ['liquidacion', 'Liquidación (RR.HH.)']];
@@ -543,21 +546,57 @@ function pantallaIngreso() {
     <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
       ${nf ? `<div class="aviso a" style="margin:0">No encontramos la empresa <b>${esc(nf)}</b>. Revisá la dirección que te pasó RR.HH.</div>` : ''}
       <div class="card" style="margin:0"><h3>¿Trabajás en una empresa que usa Vista?</h3><p>Entrá con la dirección que te pasó RR.HH., o escribí el código de tu empresa.</p>
-        <div class="f"><label class="w">Código de tu empresa<input id="lgCod" autocapitalize="none" placeholder="Ej: ferreteria-del-sur"></label></div>
+        <div class="f"><label class="w">Código de tu empresa<input id="lgCod" autocapitalize="none" placeholder="Ej: ferreteria"></label></div>
         <button class="btn" id="lgCodBtn" style="margin-top:10px;width:100%">Entrar</button></div>
-      <div class="card" style="margin:0"><h3>Panel maestro</h3><p>Solo para el dueño de Vista Humana. Te mandamos un enlace a tu mail.</p>
-        <div class="f"><label class="w">Tu mail<input id="lgMail" type="email" autocomplete="email" autocapitalize="none"></label></div>
-        <button class="btn" id="lgBtn" style="margin-top:10px;width:100%">Mandarme el enlace</button><p id="lgMsg" style="margin-top:8px"></p></div>
+      <div class="card" style="margin:0" id="lgCard"><h3>Panel maestro</h3><p>Solo para el dueño de Vista Humana.</p>
+        <div class="f"><label class="w">Tu mail<input id="lgMail" type="email" autocomplete="username" autocapitalize="none"></label>
+        <label class="w">Contraseña<input id="lgPass" type="password" autocomplete="current-password"></label>
+        <label class="w hide" id="lgRepW">Repetí la contraseña<input id="lgRep" type="password" autocomplete="new-password"></label></div>
+        <button class="btn" id="lgBtn" style="margin-top:10px;width:100%">Entrar</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sec sm" id="lgCrear">Primera vez: crear mi contraseña</button><button class="btn sec sm" id="lgOlvide">Me olvidé la contraseña</button><button class="btn sec sm" id="lgEnlace">Entrar con un enlace al mail</button></div>
+        <p id="lgMsg" style="margin-top:8px"></p></div>
     </div></div>`;
   const irCod = () => { const c = slug($('lgCod').value); if (!$('lgCod').value.trim()) return; location.href = 'index.html?c=' + encodeURIComponent(c); };
   $('lgCodBtn').onclick = irCod; $('lgCod').onkeydown = (e) => { if (e.key === 'Enter') irCod(); };
-  $('lgBtn').onclick = async () => {
-    const m = $('lgMail').value.trim().toLowerCase();
-    if (!mailOk(m)) { $('lgMsg').textContent = 'Revisá el mail.'; return; }
-    $('lgBtn').disabled = true; $('lgMsg').textContent = 'Enviando…';
-    try { au.languageCode = 'es'; await au.sendSignInLinkToEmail(m, { url: new URL('maestro.html?vhd=1', location.href).href, handleCodeInApp: true }); localStorage.setItem('vh_maestro_mail', m); $('lgMsg').innerHTML = '📧 Listo. Abrí el mail <b>en este mismo navegador</b> y tocá el enlace (mirá en Spam si no aparece).'; }
-    catch (e) { $('lgBtn').disabled = false; $('lgMsg').textContent = '⚠️ No se pudo mandar (' + (e.code || e.message) + ').'; }
+  const msg = (t) => { $('lgMsg').innerHTML = t; };
+  const mailDe = () => { const x = $('lgMail').value.trim().toLowerCase(); if (!mailOk(x)) { msg('Revisá el mail.'); return null; } if (x !== DUENO_MAIL) { msg('Este panel es solo del dueño de Vista Humana.'); return null; } return x; };
+  const urlVuelta = { url: new URL('maestro.html', location.href).href };
+  au.languageCode = 'es';
+  let creando = false;
+  const entrar = async () => {
+    const x = mailDe(); if (!x) return;
+    const p = $('lgPass').value;
+    if (creando) {
+      if (p.length < 10 || !/[a-zA-Z]/.test(p) || !/[0-9]/.test(p)) return msg('Elegí una contraseña de al menos 10 caracteres, con letras y números. Es la llave de todo el sistema.');
+      if (p !== $('lgRep').value) return msg('Las contraseñas no coinciden.');
+      $('lgBtn').disabled = true; msg('Creando…');
+      try { const c = await au.createUserWithEmailAndPassword(x, p); await c.user.sendEmailVerification(urlVuelta); pantallaIngreso(); return; }
+      catch (e) {
+        if (e.code === 'auth/email-already-in-use') { try { await au.sendPasswordResetEmail(x, urlVuelta); } catch (e2) { } msg('Tu cuenta ya existe. Te mandamos un mail para ponerle contraseña: tocá el enlace, escribila ahí y después entrá acá con tu mail y esa contraseña.'); }
+        else msg('⚠️ No se pudo (' + (e.code || e.message) + ').');
+      }
+      $('lgBtn').disabled = false; return;
+    }
+    if (!p) return msg('Escribí tu contraseña.');
+    $('lgBtn').disabled = true; msg('Entrando…');
+    try { await au.signInWithEmailAndPassword(x, p); }
+    catch (e) { $('lgBtn').disabled = false; msg(/too-many/.test(e.code || '') ? 'Demasiados intentos. Esperá unos minutos.' : 'Mail o contraseña incorrectos. Si es la primera vez, tocá "Primera vez: crear mi contraseña".'); }
   };
+  $('lgBtn').onclick = entrar; $('lgPass').onkeydown = (e) => { if (e.key === 'Enter') entrar(); };
+  $('lgCrear').onclick = () => { creando = !creando; $('lgRepW').classList.toggle('hide', !creando); $('lgBtn').textContent = creando ? 'Crear mi contraseña' : 'Entrar'; $('lgCrear').textContent = creando ? 'Ya tengo contraseña' : 'Primera vez: crear mi contraseña'; $('lgPass').autocomplete = creando ? 'new-password' : 'current-password'; msg(''); };
+  $('lgOlvide').onclick = async () => { const x = mailDe(); if (!x) return; try { await au.sendPasswordResetEmail(x, urlVuelta); } catch (e) { } msg('📧 Te mandamos un mail para elegir una contraseña nueva (mirá en Spam si no aparece).'); };
+  $('lgEnlace').onclick = async () => {
+    const x = mailDe(); if (!x) return; msg('Enviando…');
+    try { await au.sendSignInLinkToEmail(x, { url: new URL('maestro.html?vhd=1', location.href).href, handleCodeInApp: true }); localStorage.setItem('vh_maestro_mail', x); msg('📧 Listo. Con esta opción tenés que abrir el mail <b>en este mismo navegador</b>.'); }
+    catch (e) { msg('⚠️ No se pudo mandar (' + (e.code || e.message) + ').'); }
+  };
+  const u = au.currentUser;
+  if (u && String(u.email || '').toLowerCase() === DUENO_MAIL && !u.emailVerified) {
+    $('lgMail').value = u.email;
+    msg('📧 Te mandamos un mail para confirmar que es tuyo. Tocá el enlace (desde cualquier aparato, puede ser el celular) y después <button class="btn sm" id="lgYa">Ya lo confirmé</button> <button class="btn sec sm" id="lgRe">Mandarlo de nuevo</button>');
+    $('lgYa').onclick = async () => { await u.reload(); await u.getIdToken(true); if (au.currentUser.emailVerified) location.reload(); else msg('Todavía no aparece confirmado. Tocá el enlace del mail y probá de nuevo.'); };
+    $('lgRe').onclick = async () => { try { await u.sendEmailVerification(urlVuelta); msg('📧 Te lo mandamos de nuevo.'); } catch (e) { msg('Esperá unos minutos antes de pedirlo otra vez.'); } };
+  }
 }
 const esDueno = (u) => !!(u && u.emailVerified && String(u.email || '').toLowerCase() === DUENO_MAIL);
 (async function arranque() {
@@ -569,6 +608,7 @@ const esDueno = (u) => !!(u && u.emailVerified && String(u.email || '').toLowerC
   }
   au.onAuthStateChanged((u) => {
     if (esDueno(u)) { $('login').classList.add('hide'); $('app').classList.remove('hide'); escuchar(); }
+    else if (u && String(u.email || '').toLowerCase() === DUENO_MAIL) pantallaIngreso();   // falta confirmar el mail
     else { if (u) au.signOut(); pantallaIngreso(); }
   });
 })();
@@ -686,6 +726,7 @@ $('fLogo').onchange = () => {
 };
 $('fSinLogo').onclick = () => { ed.logo = ''; $('fLogo').value = ''; prev(); };
 ['fNom', 'fC1', 'fC2'].forEach((i) => { $(i).oninput = prev; });
+$('fCod').oninput = () => { if (ed && !ed.id) { ed.codMano = slug($('fCod').value).slice(0, 20); $('fLink').textContent = urlCorta(ed.codMano || codigoPropuesto()); } };
 $('fEst').onchange = () => {
   const v = $('fEst').value;
   if (v === 'susp' && ed.est !== 'susp') confirmar('¿Suspender a ' + esc(ed.nom || 'este cliente') + '?', 'Su gente no va a poder entrar hasta que lo vuelvas a activar. Los datos no se borran. Se aplica al tocar Guardar.', 'Suspender', () => prev(), () => { $('fEst').value = ed.est || 'ok'; });
@@ -694,8 +735,9 @@ $('fEst').onchange = () => {
 function prev() {
   ed.nom = $('fNom').value; ed.c1 = $('fC1').value; ed.c2 = $('fC2').value;
   $('boxSusp').classList.toggle('hide', $('fEst').value !== 'susp');
-  $('fLink').textContent = urlCliente(ed.id || slug(ed.nom));
-  $('fCod').textContent = ed.id || slug(ed.nom) || '—';
+  const cod = ed.id || codigoPropuesto();
+  $('fLink').textContent = urlCorta(cod);
+  $('fCod').value = cod; $('fCod').readOnly = !!ed.id; $('fCodAyuda').textContent = ed.id ? 'El código no se puede cambiar (ya lo usa su gente).' : 'Corto y fácil de dictar: solo letras, números y guiones. Después no se puede cambiar.';
   const sello = '<span class="pw"><i class="vh">VH</i>con Vista Humana</span>';
   if (vista === 1) {
     $('ph').style.background = `linear-gradient(160deg,${ed.c1},#0F0E22)`;
@@ -708,6 +750,11 @@ function prev() {
     $('ph').style.background = '#1b1a2e';
     $('ph').innerHTML = `<div class="app">${hd}<div class="bd">${cuerpo}</div><div style="padding:8px;border-top:1px solid var(--line);background:#fff">${sello}</div></div>`;
   }
+}
+function codigoPropuesto() {
+  if (ed.codMano) return ed.codMano;
+  const pal = slug(ed.nom).split('-').filter((w) => w.length > 2 && !['del', 'los', 'las', 'sur', 'srl', 'sas'].includes(w));
+  return (pal[0] || slug(ed.nom) || 'cliente').slice(0, 16);
 }
 function vp(n) { vista = n; [1, 2, 3].forEach((k) => $('pv' + k).classList.toggle('on', k === n)); $('phCap').textContent = ['', 'Así ve el ingreso su gente', 'Así se ve adentro, en el celular', 'Así ve el panel su RR.HH.'][n]; prev(); }
 [1, 2, 3].forEach((n) => { $('pv' + n).onclick = () => vp(n); });
@@ -745,7 +792,11 @@ async function guardar() {
   if (!ed.muestra && (!admN || admDni.length < 7 || !mailOk(admM))) { sec('rrhh'); return toast('Completá nombre, DNI y mail del administrador de RR.HH.'); }
   const nuevo = !ed.id;
   let id = ed.id;
-  if (nuevo) { id = slug(nom); let k = 2; while (S.pub[id]) id = slug(nom).slice(0, 27) + '-' + (k++); }
+  if (nuevo) {
+    id = slug($('fCod').value || codigoPropuesto()).slice(0, 20);
+    if (!/^[a-z0-9][a-z0-9-]{2,19}$/.test(id) || RESERVADOS.includes(id)) { sec('rrhh'); return toast('Elegí otro código: de 3 a 20 letras o números, sin espacios.'); }
+    if (S.pub[id]) { sec('rrhh'); return toast('Ese código ya lo usa otro cliente. Elegí otro.'); }
+  }
   const pub = { nom, ciudad: $('fCiu').value.trim(), c1: $('fC1').value, c2: $('fC2').value, logo: ed.logo || '', est: $('fEst').value, tope: Number($('fTope').value) || 0, vto: $('fVto').value || '',
     mods: Object.fromEntries([...document.querySelectorAll('[data-m]')].map((x) => [x.dataset.m, x.checked])), empresas, muestra: !!ed.muestra, ts: TS() };
   const priv = Object.assign({}, ed.priv, { precio: $('fPrecio').value.trim(), gracia: Number($('pgGr').value) || 0, auto: $('pgAuto').checked, admN, admDni, admM });
@@ -881,7 +932,7 @@ $('btnMuestra').onclick = async () => {
   const B = window.__VH_SEED__; if (!B) return toast('No se pudo armar la muestra');
   $('btnMuestra').disabled = true; toast('Armando la muestra…', 9000);
   try {
-    let id = 'muestra-' + azar(2); while (S.pub[id]) id = 'muestra-' + azar(2);
+    let id = 'muestra', k = 2; while (S.pub[id]) id = 'muestra' + (k++);
     const datos = JSON.parse(JSON.stringify(B.datos));
     const plus = (dni) => DUENO_MAIL.replace('@', '+' + dni + '@');
     datos.padron = Object.fromEntries(Object.entries(datos.usuarios).map(([dni, u]) => [dni, { mail: plus(dni), nombre: u.nombre, activo: true, ts: Date.now() }]));

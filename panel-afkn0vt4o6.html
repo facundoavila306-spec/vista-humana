@@ -737,7 +737,7 @@ function prev() {
   if (vista === 1) {
     $('ph').style.background = `linear-gradient(160deg,${ed.c1},#0F0E22)`;
     $('ph').innerHTML = `<div class="lc"><div class="lg" style="background:${ed.logo ? '#fff' : ed.c1}">${logoHtml(ed)}</div><div class="nm">${esc(ed.nom || 'Nombre del cliente')}</div><div class="sb">Portal del empleado</div>
-      ${$('fEst').value === 'susp' ? '<div class="aviso a" style="text-align:center">Servicio pausado. Consultá con RR.HH.</div>' : `<div class="in">DNI (sin puntos)</div><div class="in">Clave</div><div class="bt" style="background:${ed.c2}">Ingresar</div><div style="text-align:center;font-size:12px;color:${ed.c2};font-weight:700">Es mi primera vez: registrarme</div>`}${sello}</div>`;
+      ${$('fEst').value === 'susp' ? '<div class="aviso a" style="text-align:center">Servicio pausado. Consultá con RR.HH.</div>' : `<div class="in">DNI (sin puntos)</div><div class="in">Clave</div><div class="bt" style="background:${ed.c2}">Ingresar</div>`}${sello}</div>`;
   } else {
     const hd = `<div class="hdr" style="background:${ed.c1}"><div class="lg">${logoHtml(ed)}</div><div style="font-size:12px;line-height:1.3"><b>${vista === 3 ? 'Administración' : 'Hola, Lucía'}</b><br><span style="opacity:.8">${esc(ed.nom || 'Cliente')}</span></div></div>`;
     const cuerpo = vista === 2 ? `<div class="it" style="background:${ed.c1};color:#fff;font-weight:800">Marcar entrada</div><div class="it">Firmar recibo de Septiembre</div><div class="it">Leer: Protocolo ante accidentes</div><div class="it">Mi semana</div>`

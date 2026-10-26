@@ -7,7 +7,11 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="icon" href="icon-192.png" sizes="192x192">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vista Humana">
 <title>Vista Humana</title>
 <style>
 :root{
@@ -361,7 +365,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
     <div style="height:18px"></div>
     <button class="btn" id="btnLogin">Ingresar</button>
     <button type="button" class="btn borde" id="btnRegistrarme" style="margin-top:8px">Es mi primera vez: registrarme</button>
-    <a href="#" id="lnkClaveAdmin" class="oculto" style="display:block;text-align:center;margin-top:10px;font-size:.82rem;color:var(--gris)">Soy el dueño: entrar con mi mail</a>
+    <a href="#" id="lnkClaveAdmin" class="oculto" style="display:block;text-align:center;margin-top:10px;font-size:.82rem;color:var(--gris)">Soy el dueño de Vista Humana</a>
       <button class="btn borde oculto" id="btnInstalar" style="margin-top:8px">📲 Instalar la app en este teléfono</button>
       <p class="nota oculto" id="hintIos" style="margin-top:8px;text-align:center">📲 Para instalarla en iPhone: tocá <b>Compartir</b> (el cuadradito con flecha) y elegí <b>"Agregar a pantalla de inicio"</b>.</p>
       <p class="nota credito">© 2026 Facundo Manuel Avila <br><a href="#" data-acerca>Créditos y licencias</a></p>
@@ -445,7 +449,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
         </div>
       </div>
       <div class="card info-empresa" id="cardEmpresa">
-        <h3 id="empTitulo">Grupo Andina</h3>
+        <h3 id="empTitulo"></h3>
         <p id="empTexto"></p>
       </div>
       <div class="seccion-titulo">Novedades</div>
@@ -665,7 +669,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
           <div><label>DNI</label><input id="usDni" inputmode="numeric" maxlength="8"></div>
           <div><label>Legajo</label><input id="usLegajo"></div>
           <div class="ancho"><label>Apellido y nombre</label><input id="usNombre"></div>
-          <div><label>Empresa</label><select id="usEmpresa"><option>Petroservicios del Sur SAS</option><option>Andina Herramientas SRL</option><option>Distribuidora del Valle SA</option></select></div>
+          <div><label>Empresa</label><select id="usEmpresa" data-empresas></select></div>
           <div class="ancho"><label>Mail (con este se registra)</label><input id="usMail" type="email" autocapitalize="none"></div>
           <div><label>Clave inicial</label><input id="usPin" inputmode="numeric" maxlength="8" placeholder="Últimos 4 del DNI"></div>
         </div>
@@ -678,7 +682,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
         <div class="fila-form">
           <div class="ancho"><label>Backup / lista en JSON</label><textarea id="impJson" rows="4" placeholder='Pegá acá el contenido del backup…'></textarea></div>
           <div><label>…o subí el archivo</label><input type="file" id="impArchivo" accept=".json,.txt"></div>
-          <div><label>Empresa por defecto</label><select id="impEmpresa"><option>Petroservicios del Sur SAS</option><option>Andina Herramientas SRL</option><option>Distribuidora del Valle SA</option></select></div>
+          <div><label>Empresa por defecto</label><select id="impEmpresa" data-empresas></select></div>
         </div>
         <div style="height:10px"></div>
         <button class="btn mini azul" id="btnImpAnalizar">🔍 Analizar</button>
@@ -1019,7 +1023,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
           <div><label>Días corridos (0 = según certificado)</label><input id="liDias" inputmode="numeric" value="1"></div>
           <div><label>Tope anual (vacío = sin tope)</label><input id="liTope" inputmode="numeric" placeholder="Ej: 10"></div>
           <div><label>Fuente / norma</label><input id="liFuente" placeholder="Ej: CCT 644/12 art. X"></div>
-          <div class="ancho"><label>Aplica a</label><select id="liEmpresa"><option value="">Todas las empresas</option><option>Petroservicios del Sur SAS</option><option>Andina Herramientas SRL</option><option>Distribuidora del Valle SA</option></select></div>
+          <div class="ancho"><label>Aplica a</label><select id="liEmpresa" data-empresas><option value="">Todas las empresas</option></select></div>
         </div>
         <div style="height:8px"></div>
         <button class="btn mini azul" id="btnAgregarLicencia">➕ Agregar licencia</button>
@@ -1209,6 +1213,124 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
 
 <div class="badge-version" id="badgeVersion" title="Versión de Vista Humana">v…</div>
 
+<script>
+/* ══════════════ VISTA HUMANA · CLIENTE (5.0) ══════════════
+   Cada cliente entra por su dirección: .../?c=<cliente>. Antes de que arranque la app
+   se lee su ficha pública (nombre, logo, colores, empresas, módulos, estado) de
+   vh/maestro/publico/<cliente>, se guarda en el teléfono por si no hay señal, y todo
+   lo que la app guarda en el teléfono queda separado por cliente. */
+(function () {
+  'use strict';
+  const qs = new URLSearchParams(location.search);
+  const LSraw = { g: Storage.prototype.getItem, s: Storage.prototype.setItem, r: Storage.prototype.removeItem };
+  const lget = (k) => { try { return LSraw.g.call(localStorage, k); } catch (e) { return null; } };
+  const lset = (k, v) => { try { LSraw.s.call(localStorage, k, v); } catch (e) { } };
+  let cid = String(qs.get('c') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+  if (cid) lset('vh_cid', cid); else cid = lget('vh_cid') || '';
+  window.VH_CID = cid;
+  const EMU = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const stub = () => { const n = '§'; window.VHC = { id: '', nom: '', ciudad: '', empresas: [], nombres: [], mods: {}, emp: () => null, esPet: () => false, esPetClave: () => false, slot: () => n, convTxt: () => '', icono: () => '', modOn: () => true, yendo: true }; };
+  if (!cid) { stub(); location.replace('maestro.html' + location.search); return; }
+
+  // Lo que la app guarda en el teléfono, separado por cliente (un mismo celular puede usar dos)
+  const ns = (k) => (typeof k === 'string' && /^(mps21_|vh_)/.test(k) && k !== 'vh_cid' && k.indexOf('@') < 0) ? k + '@' + cid : k;
+  Storage.prototype.getItem = function (k) { return LSraw.g.call(this, this === window.localStorage ? ns(k) : k); };
+  Storage.prototype.setItem = function (k, v) { return LSraw.s.call(this, this === window.localStorage ? ns(k) : k, v); };
+  Storage.prototype.removeItem = function (k) { return LSraw.r.call(this, this === window.localStorage ? ns(k) : k); };
+
+  // Ficha pública del cliente
+  let pub = null;
+  if (navigator.onLine !== false) {
+    try {
+      const x = new XMLHttpRequest();
+      x.open('GET', (EMU ? 'http://127.0.0.1:9000' : 'https://vista-humana-default-rtdb.firebaseio.com') + '/vh/maestro/publico/' + cid + '.json' + (EMU ? '?ns=demo-vista-default-rtdb' : ''), false);
+      x.send();
+      if (x.status === 200) { pub = JSON.parse(x.responseText); if (pub) lset('vh_pub@' + cid, JSON.stringify(pub)); else LSraw.r.call(localStorage, 'vh_pub@' + cid); }
+    } catch (e) { /* sin señal: vale lo guardado */ }
+  }
+  if (!pub) { try { pub = JSON.parse(lget('vh_pub@' + cid) || 'null'); } catch (e) { pub = null; } }
+  if (!pub) { stub(); location.replace('maestro.html?nf=' + encodeURIComponent(cid)); return; }
+
+  const limpiar = (s) => String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '');
+  const CONV = { com: 'CCT 130/75 · Comercio', pet: 'CCT 644/12 · Petroleros privados', uoc: 'CCT 76/75 · Construcción (UOCRA)', cam: 'CCT 40/89 · Camioneros', san: 'CCT 122/75 · Sanidad', fdc: 'Fuera de convenio' };
+  const ICON = { com: '🏬', pet: '⛽', uoc: '🏗️', cam: '🚚', san: '🏥', fdc: '🏢' };
+  let emps = (Array.isArray(pub.empresas) ? pub.empresas : Object.values(pub.empresas || {})).filter((e) => e && e.n);
+  if (!emps.length) emps = [{ n: pub.nom || 'Empresa', conv: 'com' }];
+  const usados = new Set();
+  emps = emps.map((e) => {
+    const pal = String(e.n).replace(/\b(S\.?A\.?S?|S\.?R\.?L\.?|SAS|SRL|SA|S\.?A\.?U\.?)\b\.?/gi, '').trim().split(/\s+/).filter(Boolean);
+    let corto = String(e.corto || '').trim() || (pal[0] && pal[0].length < 4 && pal[1] ? pal.slice(0, 2).join(' ') : (pal[0] || 'Empresa'));
+    let clave = limpiar(corto) || 'EMP';
+    while (usados.has(clave)) clave += 'X';
+    usados.add(clave);
+    return { n: String(e.n), corto, clave, conv: CONV[e.conv] ? e.conv : 'com', cuit: e.cuit || '', dir: e.dir || '', loc: e.loc || pub.ciudad || '', cp: e.cp || '', prov: e.prov || '' };
+  });
+  const porNombre = (n) => emps.find((e) => e.n === n) || emps.find((e) => limpiar(e.n) === limpiar(n) || e.clave === limpiar(n)) || null;
+  const mods = pub.mods || {};
+  const MAPA = { fichaje: 'fichaje', calendario: 'fichaje', presencia: 'presencia', recibos: 'recibos', docs: 'docs', pedidos: 'pedidos', deudasResumen: 'pedidos', epp: 'epp', cursos: 'cursos', habilitaciones: 'cursos', liquidacion: 'liquidacion' };
+  const VHC = window.VHC = {
+    id: cid, nom: pub.nom || 'Empresa', ciudad: pub.ciudad || '', c1: pub.c1 || '#171531', c2: pub.c2 || '#DF4324', logo: pub.logo || '',
+    est: pub.est || 'ok', tope: Number(pub.tope) || 0, vto: pub.vto || '', muestra: !!pub.muestra, mods,
+    empresas: emps, nombres: emps.map((e) => e.n),
+    emp: porNombre,
+    esPet: (n) => { const e = porNombre(n); return !!e && e.conv === 'pet'; },
+    esPetClave: (k) => emps.some((e) => e.clave === k && e.conv === 'pet'),
+    slot: (cual) => {   // los tres "lugares" que la app traía de fábrica
+      const pet = emps.filter((e) => e.conv === 'pet'), otras = emps.filter((e) => e.conv !== 'pet');
+      const x = cual === 'pet' ? pet[0] : cual === 'otra1' ? otras[0] : otras[1];
+      return x ? x.n : '§ninguna§';
+    },
+    convTxt: (n) => { const e = porNombre(n); return e ? CONV[e.conv] : ''; },
+    icono: (conv) => ICON[conv] || '🏢',
+    modOn: (clave) => { const m = MAPA[clave]; return !m || mods[m] !== false; },
+    soporte: qs.get('soporte') === '1'
+  };
+
+  // Colores de la marca (el acento con texto se oscurece un poco para que se lea)
+  const oscurecer = (hex, f) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return hex; const n = parseInt(m[1], 16); const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(v * f)); return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join(''); };
+  const css = document.createElement('style');
+  css.textContent = `:root{--azul:${VHC.c1};--azul-osc:${oscurecer(VHC.c1, .7)};--turquesa:${VHC.c2};--coral-txt:${oscurecer(VHC.c2, .82)};--turquesa-suave:${VHC.c2}1A}`
+    + Object.entries({ Recibos: 'recibos', Docs: 'docs', Fichajes: 'fichaje', Solicitudes: 'pedidos', Epp: 'epp', Venc: 'cursos', Cursos: 'cursos', Liquidacion: 'liquidacion' })
+      .filter(([, m]) => mods[m] === false).map(([t]) => `[data-atab="${t}"]{display:none!important}`).join('');
+  document.head.appendChild(css);
+  document.title = VHC.nom + ' · Vista Humana';
+  // App instalable con el nombre y el color del cliente (abre directo en su empresa)
+  try {
+    const abs = (u) => new URL(u, location.href).href;
+    const man = { name: VHC.nom, short_name: VHC.nom.length > 14 ? VHC.nom.split(/\s+/)[0].slice(0, 14) : VHC.nom, lang: 'es-AR', display: 'standalone', orientation: 'portrait',
+      id: abs('index.html?c=' + cid), start_url: abs('index.html?c=' + cid), scope: abs('./'), background_color: VHC.c1, theme_color: VHC.c1,
+      icons: [{ src: abs('icon-192.png'), sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: abs('icon-512.png'), sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: abs('icon-maskable-512.png'), sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
+    const l = document.querySelector('link[rel="manifest"]');
+    if (l) l.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(man));
+    const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.content = VHC.c1;
+  } catch (e) { }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Marca del cliente en el ingreso; Vista Humana chiquito abajo
+    const marca = document.querySelector('#viewLogin .login-marca');
+    if (marca) {
+      const logo = VHC.logo
+        ? `<img src="${VHC.logo}" alt="" style="max-width:220px;max-height:90px;object-fit:contain;display:block;margin:0 auto 10px">`
+        : `<div style="width:72px;height:72px;border-radius:18px;background:${VHC.c1};color:#fff;display:grid;place-items:center;font-weight:800;font-size:26px;margin:0 auto 10px">${VHC.nom.split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase()}</div>`;
+      const h = document.createElement('div');
+      h.innerHTML = logo + `<h2 style="text-align:center;margin:0 0 2px;font-size:1.3rem">${VHC.nom.replace(/</g, '&lt;')}</h2>`;
+      const svg = marca.querySelector('svg'); if (svg) svg.replaceWith(h); else marca.prepend(h);
+    }
+    const cred = document.querySelector('#viewLogin .credito');
+    if (cred) cred.insertAdjacentHTML('afterbegin', '<span style="display:inline-flex;align-items:center;gap:5px;margin-bottom:4px"><i style="display:inline-grid;place-items:center;width:16px;height:16px;border-radius:5px;background:#DF4324;color:#fff;font-size:7.5px;font-weight:800;font-style:normal">VH</i>con Vista Humana</span><br>');
+    document.querySelectorAll('select[data-empresas]').forEach((s) => {
+      s.insertAdjacentHTML('beforeend', VHC.nombres.map((n) => `<option>${n.replace(/</g, '&lt;')}</option>`).join(''));
+    });
+    if (VHC.est === 'susp' && !VHC.soporte) {
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--azul);display:grid;place-items:center;padding:20px';
+      d.innerHTML = `<div style="background:#fff;border-radius:20px;padding:26px 22px;max-width:360px;text-align:center"><h2 style="margin:0 0 8px">${VHC.nom.replace(/</g, '&lt;')}</h2><p style="color:#4A4766">Servicio pausado. Consultá con RR.HH. de tu empresa.</p></div>`;
+      document.body.appendChild(d);
+    }
+  });
+})();
+
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -1275,7 +1397,7 @@ const DUENO_MAIL = 'facundoavila306@gmail.com';
 /* Pruebas locales: abierto desde localhost usa los emuladores de Firebase, nunca la base real. */
 const EMULADOR = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const FB_URL = EMULADOR ? 'http://127.0.0.1:9000/?ns=demo-vista-default-rtdb' : FIREBASE_CONFIG.databaseURL;
-const RUTA = 'vh';
+const RUTA = 'vh/c/' + (window.VH_CID || '_');
 /* Usuarios MAESTROS (acceso sólo como administrador, sin legajo). Decisión de
    Facundo 03/09/2026: se retira la clave general "ssp2026"; el maestro es
    "maestro". Los administradores del equipo de RR.HH. entran con su DNI y clave
@@ -1604,11 +1726,7 @@ async function sembrarSiVacio() {
       '2026-12-08': 'Inmaculada Concepción de María',
       '2026-12-25': 'Navidad'
     },
-    firmantes: {
-      f1: { nombre: 'GARCÍA, LAURA', cargo: 'JEFA DE RECURSOS HUMANOS', legajo: '010' },
-      f2: { nombre: 'ROMERO, ANA LUCÍA', cargo: 'ADMINISTRADOR TITULAR' },
-      f3: { nombre: 'MÉNDEZ, RAÚL', cargo: 'TITULAR' }
-    }
+    firmantes: {}
   };
   for (const [nodo, valor] of Object.entries(seeds)) {
     const s = await R(nodo).get();
@@ -1617,16 +1735,8 @@ async function sembrarSiVacio() {
   const c = await R('config').get();
   if (!c.exists()) {
     await R('config').set({
-      porEmpresa: {
-        'Petroservicios del Sur SAS': { firmante: 'ROMERO, ANA LUCÍA', caracter: 'ADMINISTRADOR TITULAR', titulo: 'Petroservicios del Sur', texto: '' },
-        'Andina Herramientas SRL': { firmante: 'MÉNDEZ, RAÚL', caracter: 'TITULAR', titulo: 'Andina Herramientas SRL', texto: '' },
-        'Distribuidora del Valle SA': { firmante: 'ROMERO, ANA LUCÍA', caracter: 'ADMINISTRADOR TITULAR', titulo: 'Distribuidora del Valle SA', texto: '' }
-      },
-      modulos: {
-        'Petroservicios del Sur SAS': { fichaje: true, habilitaciones: false },
-        'Andina Herramientas SRL': { fichaje: true, habilitaciones: false },
-        'Distribuidora del Valle SA': { fichaje: true, habilitaciones: false }
-      }
+      porEmpresa: Object.fromEntries(VHC.empresas.map((e) => [e.n, { firmante: '', caracter: '', titulo: e.n, texto: '' }])),
+      modulos: Object.fromEntries(VHC.empresas.map((e) => [e.n, { fichaje: true, habilitaciones: e.conv === 'pet' }]))
     });
   }
 }
@@ -1738,7 +1848,7 @@ function conTiempo(p, ms) { return Promise.race([p, new Promise((_, rej) => setT
 async function leerUna(ruta, ms) { const s = await conTiempo(R(ruta).get(), ms || 8000); return s.val(); }
 /* Clave de la cuenta temporal del mail. No es un secreto: esa cuenta no sirve de
    nada hasta que la persona toca el enlace en SU casilla, y se borra enseguida. */
-async function claveMail(mail, dni) { return 'vm·' + (await sha256Hex('vh-mail|' + normMail(mail) + '|' + dni + '|' + FIREBASE_CONFIG.projectId)).slice(0, 40); }
+async function claveMail(mail, dni) { return 'vm·' + (await sha256Hex('vh-mail|' + normMail(mail) + '|' + dni + '|' + VHC.id + '|' + FIREBASE_CONFIG.projectId)).slice(0, 40); }
 
 async function entrarCuentaCelular(d) {
   const a = auth();
@@ -1769,7 +1879,7 @@ async function prepararCelular(dni) {
   let d = celDe(dni);
   if (d) { try { await entrarCuentaCelular(d); } catch (e) { if (esRed(e)) throw e; d = null; celGuardar(dni, null); } }
   if (!d) {
-    const email = dni + '.' + azarHex(5) + '@disp.' + AUTH_DOMINIO, clave = 'vc·' + azarHex(20);
+    const email = dni + '.' + VHC.id.slice(0, 20) + '.' + azarHex(4) + '@disp.' + AUTH_DOMINIO, clave = 'vc·' + azarHex(20);
     const cred = await conTiempo(a.createUserWithEmailAndPassword(email, clave), 15000);
     d = { uid: cred.user.uid, email, clave, creado: Date.now() };
     celGuardar(dni, d);
@@ -1796,7 +1906,7 @@ async function mandarConfirmacion(dni, mail) {
     }
   }
   a.languageCode = 'es';
-  await conTiempo(u.sendEmailVerification({ url: location.origin + location.pathname + '?vhc=1' }), 15000);
+  await conTiempo(u.sendEmailVerification({ url: location.origin + location.pathname + '?c=' + VHC.id + '&vhc=1' }), 15000);
   lsSet(VINC_KEY, { dni, mail, ts: Date.now() });
 }
 async function celularVinculado(dni) {
@@ -1916,7 +2026,7 @@ function regEsperando(mail) {
   $('regReenviar').onclick = async () => {
     const v = lsJson(VINC_KEY, null); if (!v) return;
     $('regReenviar').disabled = true;
-    try { await auth().currentUser.sendEmailVerification({ url: location.origin + location.pathname + '?vhc=1' }); toast('📧 Te lo mandamos de nuevo'); }
+    try { await auth().currentUser.sendEmailVerification({ url: location.origin + location.pathname + '?c=' + VHC.id + '&vhc=1' }); toast('📧 Te lo mandamos de nuevo'); }
     catch (e) { toast(e && e.code === 'auth/too-many-requests' ? 'Esperá unos minutos antes de pedirlo otra vez.' : 'No se pudo mandar. Probá en un rato.'); }
     setTimeout(() => { const b = $('regReenviar'); if (b) b.disabled = false; }, 30000);
   };
@@ -1952,7 +2062,7 @@ function regRechazado() {
 async function duenoPedirEnlace(mail) {
   mail = normMail(mail);
   const a = auth(); a.languageCode = 'es';
-  await a.sendSignInLinkToEmail(mail, { url: location.origin + location.pathname + '?vhd=1', handleCodeInApp: true });
+  await a.sendSignInLinkToEmail(mail, { url: location.origin + location.pathname + '?c=' + VHC.id + '&vhd=1', handleCodeInApp: true });
   try { localStorage.setItem(DUENO_KEY, mail); } catch (e) { }
 }
 function esDuenoActual() { const u = authUsuario(); return !!(u && u.emailVerified && normMail(u.email) === normMail(DUENO_MAIL)); }
@@ -1962,7 +2072,7 @@ async function arranqueIdentidad() {
   const url = location.href;
   if (/[?&]vhc=1/.test(url) || /[?&]vhd=1/.test(url) || /[?&]oobCode=/.test(url)) {
     // limpiar la dirección para que un "recargar" no repita nada
-    try { history.replaceState(null, '', location.pathname); } catch (e) { }
+    try { history.replaceState(null, '', location.pathname + '?c=' + VHC.id); } catch (e) { }
   }
   if (a.isSignInWithEmailLink(url)) {
     let mail = '';
@@ -2302,14 +2412,14 @@ function actaTexto(u) {
     '',
     razon,
     '',
-    'En la ciudad de Mendoza, el/la trabajador/a ' + (u.nombre || '') + ', DNI ' + (u.dni || '') +
+    'En la ciudad de ' + (VHC.ciudad || '................') + ', el/la trabajador/a ' + (u.nombre || '') + ', DNI ' + (u.dni || '') +
       ', Legajo ' + (u.legajo || 's/n') + ', declara y acepta:',
     '',
     '1. OBJETO. La empleadora pone a disposición el sistema "Vista Humana", plataforma digital para la recepción de recibos de haberes, notificaciones laborales, constancias de entrega de EPP, comunicaciones internas y registro de jornada.',
     '',
     '2. FIRMA ELECTRÓNICA (Ley 25.506, arts. 5 y 6). El trabajador acepta que el ingreso de su clave personal en el portal constituye su firma electrónica, con los efectos del art. 5 de la Ley 25.506. Cada firma queda registrada con: huella digital SHA-256 del documento exacto firmado, fecha y hora, usuario y dispositivo utilizado.',
     '',
-    '3. PIN PERSONAL. El PIN es personal, secreto e intransferible. El trabajador se obliga a no divulgarlo y a informar de inmediato a RR.HH. ante extravío o sospecha de uso indebido, para su restablecimiento.',
+    '3. CLAVE PERSONAL. La clave es personal e intransferible. El trabajador se obliga a no divulgarla y a informar de inmediato a RR.HH. ante extravío o sospecha de uso indebido, para su restablecimiento.',
     '',
     '4. RECIBOS DE HABERES. La firma electrónica del recibo acredita su RECEPCIÓN. No implica conformidad irrevocable con su contenido, quedando a salvo los derechos del art. 260 LCT.',
     '',
@@ -3483,11 +3593,11 @@ function pintarTodo() {
     if (esCumple) {
       const nombrePila = (sesion.nombre.split(',')[1] || sesion.nombre).trim().split(/\s+/)[0];
       $('cumpleTexto').textContent = '¡Feliz cumpleaños, ' + nombrePila.charAt(0) + nombrePila.slice(1).toLowerCase() + '! 🎈';
-      $('cumpleSub').textContent = 'Que tengas un gran día. — ' + ((DB.config.porEmpresa[sesion.empresa] || {}).titulo || 'Grupo Andina');
+      $('cumpleSub').textContent = 'Que tengas un gran día. — ' + ((DB.config.porEmpresa[sesion.empresa] || {}).titulo || VHC.nom);
     }
   }
   $('cardCumple').classList.toggle('oculto', !esCumple);
-  const esSSP = (sesion.empresa || '').startsWith('Petro');
+  const esSSP = VHC.esPet(sesion.empresa || '');
   const verHab = esSSP && modActivo('habilitaciones');
   $('btnTabHab').classList.toggle('oculto', !verHab);
   pintarCardAvisos();
@@ -3643,7 +3753,7 @@ function imprimirConstancia() {
       .firma{margin-top:46px;font-size:.9rem}
       @media print{ .noprint{display:none} body{padding:12px} }
     </style></head><body>
-    <p class="emp">${esc(cfg.titulo || sesion.empresa || 'Grupo Andina')}</p>
+    <p class="emp">${esc(cfg.titulo || sesion.empresa || VHC.nom)}</p>
     <h1>Constancia de trabajo</h1>
     <p>Se deja constancia de que la persona detallada a continuación se encuentra trabajando en esta empresa a la fecha de emisión:</p>
     <table>
@@ -3656,7 +3766,7 @@ function imprimirConstancia() {
       ${fila('Antigüedad', antig)}
     </table>
     <p>Esta constancia no informa remuneración y se emite a pedido del interesado para los fines que estime corresponder.</p>
-    <p>Mendoza, ${hoy.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}.</p>
+    <p>${esc(VHC.ciudad || '')}${VHC.ciudad ? ', ' : ''}${hoy.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}.</p>
     <div class="firma">${esc(cfg.firmante || '')}<br>${esc(cfg.caracter || 'Recursos Humanos')}</div>
     <div class="pie">Emitida desde Vista Humana el ${hoy.toLocaleString('es-AR')} · aprobada por ${esc(c.por || 'RR.HH.')}${Number(c.ts) ? ' el ' + new Date(Number(c.ts)).toLocaleDateString('es-AR') : ''} · código ${esc(String(sesion.dni) + '-' + String(Number(c.ts) || Date.now()).slice(-6))}</div>
     <p class="noprint" style="margin-top:22px"><button onclick="window.print()" style="padding:10px 18px;font-size:1rem;border-radius:8px;border:0;background:#B8331A;color:#fff;font-weight:700">🖨️ Imprimir / Guardar PDF</button></p>
@@ -4831,7 +4941,7 @@ const PRES_VENTANA_H = 16;   // una entrada más vieja que esto ya no es "trabaj
 /* Empresas que comparten el panel. Andina y Valle trabajan juntas y se ven
    entre sí; Petro va aparte. Cada persona igual se muestra con su empresa al lado.
    Si mañana cambia el armado, se toca sólo esta lista. */
-const GRUPOS_PRESENCIA = [['ANDINA', 'VALLE'], ['PETRO']];
+const GRUPOS_PRESENCIA = [VHC.empresas.map((e) => e.clave)];
 function grupoDe(clave) {
   const g = GRUPOS_PRESENCIA.find((gr) => gr.includes(clave));
   return g ? g.slice() : [clave];
@@ -5103,7 +5213,7 @@ $('rjCancelar').onclick = cerrarReloj;
    · Pasó la tolerancia → "Llegaste N minutos tarde" → justificativo (pedido 'tarde' que resuelve
      RR.HH.) o "Después" (queda en el Inicio, con 48 h para justificarlo).
    Petro queda afuera: tiene francos y rotaciones y va a tener su propia regla. */
-const TARDE_EMPRESAS = ['Andina Herramientas SRL', 'Distribuidora del Valle SA'];
+const TARDE_EMPRESAS = VHC.empresas.filter((e) => e.conv !== 'pet').map((e) => e.n);
 const TARDE_HORARIOS = ['7:00', '8:00', '8:30', '9:00'];   // cuando unifiquen horarios, queda uno solo acá
 const TARDE_TOL = 4, TARDE_PLAZO_H = 48;
 const MOTIVOS_TARDE = [
@@ -5325,6 +5435,7 @@ function pedirDetallesSolicitud(id) {
 
 $('rjConfirmar').onclick = async () => {
   if (!FICHAJE_TEMP || !FICHAJE_TEMP.foto) return;
+  if (FICHAJE_TEMP.tipo === 'entrada') { try { const d = new Date(); R('resumen/fich/' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')).transaction((v) => (Number(v) || 0) + 1); } catch (e) { } }
   if (!FICHAJE_TEMP.geo && FICHAJE_TEMP.geoMotivo === 'denegado') {
     $('rjError').innerHTML = '<p class="nota" style="color:var(--peligro)">🚫 Falta activar la ubicación en tu teléfono. Seguí las indicaciones de arriba y tocá "Reintentar ubicación".</p>';
     if (navigator.vibrate) navigator.vibrate(200);
@@ -7315,9 +7426,9 @@ function descargarListado(filas, modo) {
 
 // ---------- Personal de las otras apps · lectura en vivo (probado: 13/13 contra datos reales) ----------
 // Roster unificado desde las apps existentes — probado contra los datos reales.
-const EMPRESA_SSP = 'Petroservicios del Sur SAS';
-const EMPRESA_S21 = 'Andina Herramientas SRL';
-const EMPRESA_SAL = 'Distribuidora del Valle SA';
+const EMPRESA_SSP = VHC.slot('pet');
+const EMPRESA_S21 = VHC.slot('otra1');
+const EMPRESA_SAL = VHC.slot('otra2');
 
 const FUENTES_DEF = [
   { id: 'rrhS21',   ruta: 'sistemas/sistema-rrh/state/empleados',        empresa: EMPRESA_S21, etiqueta: 'Sistema RRHH · Andina' },
@@ -7866,7 +7977,7 @@ let habEscuchado = false;
 function escucharHabSiHaceFalta() {
   if (habEscuchado) return;
   const emp = (DB.usuarios[sesion.dni] || {}).empresa || (sesion && sesion.empresa);
-  if (!String(emp || '').startsWith('Petro')) return;
+  if (!VHC.esPet(emp || '')) return;
   habEscuchado = true;
   HAB_FUENTES.forEach((f) => escucharFuenteSoloLectura(f.ruta, f.id));
 }
@@ -8629,7 +8740,7 @@ function imprimirPlanillaFichadas() {
     }).join('');
     cuerpo += '<section class="hoja' + (idxP ? ' salto' : '') + '">'
       + '<h1>PLANILLA DE CONTROL HORARIO SEMANAL</h1>'
-      + '<p class="emp">' + esc(p.empresa || sesion && sesion.empresa || 'Grupo Andina') + '</p>'
+      + '<p class="emp">' + esc(p.empresa || sesion && sesion.empresa || VHC.nom) + '</p>'
       + '<p class="periodo">Período de registro<br><b>' + esc(periodoTxt) + '</b></p>'
       + '<p class="quien">Empleado: <b>' + esc(p.nombre) + '</b><br>DNI: ' + esc(p.dni) + '</p>'
       + '<table><tr><th>Día</th><th>Entrada</th><th>Salida</th><th>Hs. trab.</th><th>Estado</th></tr>' + (filas || '<tr><td colspan="5">Sin marcas en el período.</td></tr>') + '</table>'
@@ -9208,12 +9319,13 @@ const MODULOS_EMPLEADO = {
   recibos: '📄 Recibos',
   docs: '📁 Documentos',
   pedidos: '💰 Pedidos (solicitudes y deudas)',
-  habilitaciones: '🪪 Habilitaciones (solo Petro)',
+  habilitaciones: '🪪 Habilitaciones (petroleros)',
   epp: '🦺 Mis EPP',
   cursos: '🎓 Capacitaciones',
   liquidacion: 'Liquidación (módulo de RR.HH.)'
 };
 function modActivo(clave, empresa) {
+  if (!VHC.modOn(clave)) return false;
   const cfg = (DB.config.modulos || {})[empresa || (sesion && sesion.empresa)] || {};
   return cfg[clave] !== false; // todo activo por defecto
 }
@@ -9221,7 +9333,7 @@ let modEmpSel = null;
 function renderAdmModulos() {
   if (!modEmpSel) modEmpSel = ORDEN_EMPRESAS[0];
   pintarChipsEmpresa('modEmpChips', modEmpSel, false, (e) => { modEmpSel = e; renderAdmModulos(); });
-  $('modLista').innerHTML = Object.entries(MODULOS_EMPLEADO).map(([k, nombre]) => `
+  $('modLista').innerHTML = Object.entries(MODULOS_EMPLEADO).filter(([k]) => VHC.modOn(k)).map(([k, nombre]) => `
     <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-weight:400;font-size:.9rem;margin:8px 0;cursor:pointer">
       <input type="checkbox" class="mod-tgl" value="${k}" ${modActivo(k, modEmpSel) ? 'checked' : ''} style="width:auto">
       ${nombre}
@@ -9830,7 +9942,7 @@ if ($('lnkClaveAdmin')) $('lnkClaveAdmin').onclick = (e) => { e.preventDefault()
 // Quién está administrando (para el encabezado del panel y, más adelante, la auditoría).
 let admQuien = null;
 $('btnAdminAcceso').onclick = () => {
-  if (esDuenoActual()) { pintarModoAcceso('admin'); entrarAdminCon({ dni: 'dueno', nombre: 'Dueño' }); return; }
+  location.href = 'maestro.html'; return;
   modal(`
     <h3>Entrar como dueño</h3>
     <p class="nota">Te mandamos un enlace a tu mail. Al tocarlo entrás a RR.HH. en este aparato. El equipo de RR.HH. entra con su DNI y clave eligiendo "Admin".</p>
@@ -10159,6 +10271,7 @@ $('btnCrearUsuario').onclick = async () => {
   if (dni.length < 7 || !nombre || pin.length < 4) { toast('Completá DNI y nombre (la clave, si la ponés, de al menos 4 números).'); return; }
   if (!mailValido(mail)) { toast('Poné el mail de la persona: con ese se registra.'); return; }
   if (DB.usuarios[dni]) { toast('Ya existe un usuario con ese DNI.'); return; }
+  if (window.vhTopeOk && !vhTopeOk(1)) return;
   const salt = saltAleatorio();
   await R('usuarios/' + dni).set({
     nombre, legajo: $('usLegajo').value.trim(), empresa: $('usEmpresa').value,
@@ -10831,12 +10944,8 @@ $('btnSubirRecibos').onclick = async () => {
 };
 
 // --- Selector de empresa (admin) ---
-const ORDEN_EMPRESAS = ['Petroservicios del Sur SAS', 'Andina Herramientas SRL', 'Distribuidora del Valle SA'];
-const EMPRESAS_INFO = {
-  'Petroservicios del Sur SAS': { corto: 'Petro', icono: '⛽' },
-  'Andina Herramientas SRL': { corto: 'Andina', icono: '🏭' },
-  'Distribuidora del Valle SA': { corto: 'Valle', icono: '🥬' }
-};
+const ORDEN_EMPRESAS = VHC.nombres.slice();
+const EMPRESAS_INFO = Object.fromEntries(VHC.empresas.map((e) => [e.n, { corto: e.corto, icono: VHC.icono(e.conv) }]));
 let novEmpSel = ORDEN_EMPRESAS[0];
 let cfgEmpSel = ORDEN_EMPRESAS[0];
 
@@ -10956,15 +11065,11 @@ function renderAdmNovedades() {
    Decisión de Facundo (16/10/2026): en Andina y Valle el empleado NO ve los
    vencimientos de sus EPP; en Petro sí. RR.HH. los ve siempre.
    ══════════════════════════════════════════════════════════════════════════════ */
-const EPP_EMPRESAS = [EMPRESA_SSP, EMPRESA_S21, EMPRESA_SAL];
+const EPP_EMPRESAS = VHC.nombres.slice();
 const EPP_TALLES = { ropa: 'Ropa', pantalon: 'Pantalón', calzado: 'Calzado', guantes: 'Guantes' };
 const EPP_MOTIVOS = ['Roto / gastado', 'Lo perdí / me lo robaron', 'No me queda el talle', 'Nunca me lo dieron', 'Otro'];
 /* Datos del empleador para la planilla (los mismos que usaba Control Integral). */
-const EPP_EMPLEADOR = {
-  PETRO: { razon: 'PETROSERVICIOS DEL SUR SAS', cuit: '30-71765432-1', dir: 'AV. SAN MARTÍN 1200', loc: 'MENDOZA', cp: '5500', prov: 'MENDOZA' },
-  ANDINA: { razon: 'ANDINA HERRAMIENTAS SRL', cuit: '30-71234567-8', dir: '', loc: 'MENDOZA', cp: '5501', prov: 'MENDOZA' },
-  VALLE: { razon: 'DISTRIBUIDORA DEL VALLE SA', cuit: '', dir: '', loc: 'MENDOZA', cp: '5501', prov: 'MENDOZA' }
-};
+const EPP_EMPLEADOR = Object.fromEntries(VHC.empresas.map((e) => [e.clave, { razon: e.n.toUpperCase(), cuit: e.cuit, dir: e.dir.toUpperCase(), loc: (e.loc || '').toUpperCase(), cp: e.cp, prov: (e.prov || '').toUpperCase() }]));
 const eppEK = (empresa) => empresaClave(empresa);
 function eppIconoPorNombre(n) {
   n = String(n || '').toLowerCase();
@@ -10983,7 +11088,7 @@ const eppItem = (ek, id) => { const c = (eppCfg(ek).cat || {})[id]; return c ? O
 const eppStock = (ek, id) => Number((eppCfg(ek).stock || {})[id] || 0);
 const eppTraido = (empresa) => !!eppCfg(eppEK(empresa)).traido;
 const eppFirmaDe = (dni, id) => (((DB.firmas || {})[dni]) || {})['epp_' + id] || null;
-const eppVeVencimientos = (empresa) => eppEK(empresa) === 'PETRO';
+const eppVeVencimientos = (empresa) => VHC.esPetClave(eppEK(empresa));
 function eppEntregas(dni) {
   return Object.entries((DB.epp || {})[dni] || {}).filter(([, e]) => e && typeof e === 'object')
     .map(([id, e]) => Object.assign({ id }, e)).sort((a, b) => String(b.entrega || '').localeCompare(String(a.entrega || '')));
@@ -13564,7 +13669,7 @@ window.addEventListener('appinstalled', () => { const b = $('btnInstalar'); if (
 /* El cartelito de versión estaba escrito a mano ("v2.9.4") y quedó viejo hacía
    meses: Facundo lo leyó como la versión real y no coincidía con nada
    (08/09/2026). Ahora lo saca del service worker, que es la versión de verdad. */
-const APP_VER = '4.0.0';   // debe coincidir con VERSION del service-worker.js
+const APP_VER = '5.0.0';   // debe coincidir con VERSION del service-worker.js
 /* "Buscar actualización": borra la copia que el navegador guardó de la app (service worker y caché) y
    recarga. NO toca la sesión, las marcas pendientes ni nada de lo que vive en el teléfono. */
 async function actualizarVista() {
@@ -13639,7 +13744,7 @@ armarAcordeones();
   // vencida): la sesión local sola no alcanza para leer con reglas → volver a pedir DNI y clave.
   try {
     if (!authU || !authUsuario()) { if (leerSesion()) localStorage.removeItem('mps21_sesion'); borrarSesionAdm(); }
-    else { const adm = leerSesionAdm(); if (adm && adm.dni === 'dueno' && !esDuenoActual()) borrarSesionAdm(); }
+    else { const adm = leerSesionAdm(); if (adm && adm.dni === 'dueno') borrarSesionAdm(); }
   } catch (e) { }
   // Dentro del portal grande ya hay sesión con identidad: directo al panel, sin clave.
   if (window.__FROM_PORTAL__ && window.__PORTAL_QUIEN__ && window.__PORTAL_QUIEN__.dni) {
@@ -14049,7 +14154,7 @@ function vhnPintar() {
   const nom = pila.charAt(0) + pila.slice(1).toLowerCase();
   const hoy = new Date();
   const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  const esSSP = (sesion.empresa || '').startsWith('Petro');
+  const esSSP = VHC.esPet(sesion.empresa || '');
   let entra = ''; try { const h = horarioDe(dni); if (!esSSP && h.entrada) entra = ' · Entrás ' + h.entrada; } catch (e) { }
   $('vhnTop').innerHTML = `<h2 style="margin:6px 2px 0;font-size:1.5rem">Hola, ${esc(nom)}</h2>
     <p class="nota" style="margin:2px 2px 12px;font-size:.92rem">${dias[hoy.getDay()].charAt(0).toUpperCase() + dias[hoy.getDay()].slice(1)} ${hoy.getDate()} de ${MESES[hoy.getMonth()].toLowerCase()}${entra}</p>`;
@@ -16802,7 +16907,7 @@ renderAdmSolicitudes = function () { _a7RenderAdmSolicitudesVac.apply(this, argu
 /* ═════════════ EMPRESA ═════════════ */
 let a7CfgTab = 'datos', a7AudF = 'Todo', a7AudQ = '';
 const A7_CFG_TABS = [['datos', 'Datos de empresas'], ['tipos', 'Tipos de solicitud'], ['horarios', 'Horarios y turnos'], ['admins', 'Administradores'], ['avisos', 'Avisos automáticos'], ['aud', 'Auditoría']];
-const A7_CCT = { 'Petroservicios del Sur SAS': 'CCT 644/12 · Petroleros privados', 'Andina Herramientas SRL': 'CCT 130/75 · Comercio', 'Distribuidora del Valle SA': 'CCT 130/75 · Comercio' };
+const A7_CCT = Object.fromEntries(VHC.empresas.map((e) => [e.n, VHC.convTxt(e.n)]));
 /* Avisos que la app manda sola hoy, y los que la maqueta proponía y todavía no existen (se muestran como "no disponible", sin inventar) */
 function a7Avisos() {
   return [
@@ -16911,7 +17016,7 @@ renderAuditoria = function () { _a7RenderAuditoria.apply(this, arguments); try {
     // o si algo falló. Con el cartel de vacía, se entiende de una (07/09/2026).
     card.classList.remove('oculto');
     if (!lista.length) {
-      cont.innerHTML = '<p class="nota">Sin precargas esperando. Acá caen las llegadas tarde, sanciones, vacaciones y actas de EPP que mandás con el botón 🟦 desde Diagrama de Turnos, Sepúlveda o Valle.</p>'
+      cont.innerHTML = '<p class="nota">Sin precargas esperando. Acá caen las llegadas tarde, sanciones, vacaciones y actas de EPP que mandás con el botón 🟦 desde los otros sistemas de RR.HH.</p>'
         + (window._preError ? '<p class="nota" style="color:var(--peligro)">⚠️ No se está pudiendo leer esta bandeja (' + esc(String(window._preError)) + '). Salí y volvé a entrar con tu DNI y clave.</p>' : '')
         + (!authUsuario() && !window._preError ? '<p class="nota" style="color:var(--alerta)">Esta sesión no tiene identidad: si esperabas ver algo, salí y volvé a entrar.</p>' : '');
       return;
@@ -17580,7 +17685,7 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
 
  /* ── Enchufe: Vista le pasa al módulo personas, fichadas y feriados, y guarda lo que el módulo carga ── */
  const slug=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
- const convDe=(u,emp)=>{const f=u.ficha||{},l=f.laboral||{};if(/UOCRA/i.test((l.sector||'')+' '+(f.convenio||'')))return 'uoc';return /petro|ssp/i.test(emp)?'pet':'com'};
+ const convDe=(u,emp)=>{const f=u.ficha||{},l=f.laboral||{};if(/UOCRA/i.test((l.sector||'')+' '+(f.convenio||'')))return 'uoc';return VHC.esPet(emp)?'pet':'com'};
  let liqLeido=false,liqRef=null;
  function liqCtx(estado){
   const us=DB.usuarios||{},hoy=new Date(),desde=hoy.getTime()-75*864e5,pers=[],emps={},fich={},evs={};
@@ -17719,6 +17824,7 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
       const otro = Object.entries(PD.padron).find(([k, x]) => k !== d && x && x.mail === mail);
       if (otro) { $p('pdMsg').textContent = '⚠️ Ese mail ya lo tiene el DNI ' + otro[0] + '.'; return; }
       if (!dni && (DB.usuarios || {})[d] && (DB.usuarios[d] || {}).nombre) { $p('pdMsg').textContent = '⚠️ Ya existe una persona con ese DNI: usá "Editar".'; return; }
+      if (nuevo && window.vhTopeOk && !vhTopeOk(1)) return;
       $p('pdOk').disabled = true;
       try {
         const ups = {};
@@ -17792,6 +17898,7 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
       <p class="nota">Las filas con problemas no se cargan. A las nuevas se les pone la clave inicial: los últimos 4 números del DNI.</p>
       <div class="acciones"><button class="btn azul" id="pdImpOk" ${nuevos.length + cambian.length ? '' : 'disabled'}>Cargar</button></div><p class="nota" id="pdImpMsg"></p>`);
     $p('pdImpOk').onclick = async () => {
+      if (window.vhTopeOk && !vhTopeOk(nuevos.length)) return;
       $p('pdImpOk').disabled = true; $p('pdImpMsg').textContent = 'Guardando…';
       const empX = $p('pdImpEmp') ? $p('pdImpEmp').value : '';
       try {
@@ -17812,6 +17919,216 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
     };
   }
   window.__VH_PADRON__ = { pintar, PD };
+})();
+
+</script>
+<script>
+/* ══════════════ CLIENTE · soporte, pedido de ayuda, resumen y avisos (5.0) ══════════════ */
+(function () {
+  'use strict';
+  if (!window.VHC || VHC.yendo) return;
+  const $c = (id) => document.getElementById(id);
+  const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const fdia = (t) => new Date(t).toLocaleDateString('es-AR');
+  let offset = 0;
+  try { db.ref('.info/serverTimeOffset').on('value', (s) => { offset = s.val() || 0; }); } catch (e) { }
+  const ahora = () => Date.now() + offset;
+  const SOP = { on: false, modo: 'mirar', motivo: '', hasta: 0, desde: 0, cambios: 0, t: null, ultimoToque: 0 };
+  ['pointerdown', 'keydown', 'change'].forEach((ev) => document.addEventListener(ev, () => { SOP.ultimoToque = Date.now(); }, true));
+  window.__VH_SOP__ = SOP;
+  // Una sesión de soporte vieja no se reabre sola
+  try { const a = leerSesionAdm(); if (a && a.dni === 'soporte' && !VHC.soporte) borrarSesionAdm(); } catch (e) { }
+
+  /* ---------------- SOPORTE (sólo el dueño, con el soporte abierto desde el panel maestro) ---------------- */
+  function auditSop(accion, detalle) {
+    try { R('auditoria/' + nuevoId()).set({ ts: TS(), quien: 'soporte', quienNombre: 'Soporte · Vista Humana', accion, detalle: String(detalle || '').slice(0, 220), soporte: true }); } catch (e) { }
+  }
+  const corto = (v) => { try { const t = v === undefined || v === null ? '(vacío)' : typeof v === 'object' ? JSON.stringify(v) : String(v); return t.length > 70 ? t.slice(0, 67) + '…' : t; } catch (e) { return '?'; } };
+  let _avisoMirar = 0;
+  function parcharEscrituras() {
+    const P = firebase.database.Reference.prototype;
+    const rutaDe = (ref) => { try { return decodeURIComponent(ref.toString().replace(/^https?:\/\/[^/]+\//, '').split('?')[0]); } catch (e) { return ''; } };
+    const interno = (r) => /\/(auditoria|_ids|resumen)(\/|$)/.test(r) || /\.info/.test(r);
+    // ramas que el panel actualiza solo: durante el soporte no se tocan nunca
+    const AUTO = /^(recordatorios|presencia|cumpleanos|mantenimiento|push|plantel)(\/|$)/;
+    const soloAuto = (ruta, m, a) => { const rel = ruta.replace(/^vh\/c\/[^/]+\/?/, ''); if (AUTO.test(rel)) return true; if (m === 'update' && !rel && a && typeof a === 'object') { const k = Object.keys(a); return k.length > 0 && k.every((x) => AUTO.test(x)); } return false; };
+    const bloquear = () => {
+      if (Date.now() - _avisoMirar > 4000) { _avisoMirar = Date.now(); toast('🛟 Estás en "solo mirar": no se guarda nada. Para cambiar, salí y entrá con "Mirar y arreglar".', 5000); }
+      return Promise.reject(Object.assign(new Error('Soporte en modo solo mirar'), { code: 'vh/solo-mirar' }));
+    };
+    /* Sólo vale lo que hace la persona de soporte con sus manos. Lo que el panel escribe solo
+       (sincronizaciones, recordatorios, presencia…) no se hace durante el soporte: así el soporte
+       nunca cambia nada que no haya tocado a propósito. */
+    const automatica = () => Date.now() - SOP.ultimoToque > 4000;
+    const cortaRuta = (r) => r.replace(/^vh\/c\/[^/]+\/?/, '');
+    ['set', 'update', 'remove', 'transaction', 'setWithPriority'].forEach((m) => {
+      const orig = P[m];
+      P[m] = function () {
+        const ruta = rutaDe(this);
+        if (!SOP.on || interno(ruta)) return orig.apply(this, arguments);
+        if (automatica() || soloAuto(ruta, m, arguments[0])) return Promise.reject(Object.assign(new Error('Escritura automática frenada durante el soporte'), { code: 'vh/soporte-auto' }));
+        if (SOP.modo !== 'cambiar') return bloquear();
+        const args = arguments, ref = this;
+        const antesP = m === 'update' && args[0] && typeof args[0] === 'object'
+          ? Promise.all(Object.keys(args[0]).slice(0, 6).map((k) => ref.child(k).get().then((s) => [k, s.val()], () => [k, null]))).then((l) => Object.fromEntries(l))
+          : ref.get().then((s) => s.val(), () => null);
+        return antesP.then((antes) => orig.apply(ref, args).then((r) => {
+          SOP.cambios++;
+          const nuevo = m === 'remove' ? null : m === 'transaction' ? '(calculado)' : args[0];
+          auditSop('Soporte cambió un dato', (cortaRuta(ruta) || 'varios datos') + ': ' + corto(antes) + ' → ' + corto(nuevo));
+          pintarBanner();
+          return r;
+        }));
+      };
+    });
+    const push = P.push;
+    P.push = function (v) {
+      const ruta = rutaDe(this);
+      if (v === undefined || !SOP.on || interno(ruta)) return push.apply(this, arguments);
+      if (automatica()) { const p = Promise.reject(Object.assign(new Error('automática'), { code: 'vh/soporte-auto' })); p.catch(() => { }); return Object.assign(p, { key: null }); }
+      if (SOP.modo !== 'cambiar') { const p = bloquear(); p.catch(() => { }); return Object.assign(p, { key: null }); }
+      const r = push.apply(this, arguments);
+      Promise.resolve(r).then(() => { SOP.cambios++; auditSop('Soporte agregó un dato', (ruta.replace(/^vh\/c\/[^/]+\/?/, '') || 'varios datos') + ': ' + corto(v)); pintarBanner(); }, () => { });
+      return r;
+    };
+  }
+  function pintarBanner() {
+    let b = $c('vhSopBan');
+    if (!b) {
+      b = document.createElement('div'); b.id = 'vhSopBan';
+      b.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9998;background:repeating-linear-gradient(135deg,#8A5B00,#8A5B00 14px,#7a5000 14px,#7a5000 28px);color:#fff;display:flex;gap:10px;align-items:center;padding:9px 14px;font-size:13px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.25)';
+      document.body.appendChild(b); document.body.style.paddingTop = '48px';
+    }
+    const q = Math.max(0, Math.round((SOP.hasta - ahora()) / 1000));
+    b.innerHTML = `🛟 <b>Estás como SOPORTE en ${esc(VHC.nom)}</b> · ${SOP.modo === 'cambiar' ? 'mirar y arreglar' : 'solo mirar'} · ${SOP.cambios} cambio${SOP.cambios === 1 ? '' : 's'} · motivo: “${esc(SOP.motivo)}”`
+      + `<span style="margin-left:auto;display:flex;gap:8px;align-items:center">quedan <b>${Math.floor(q / 60)}:${String(q % 60).padStart(2, '0')}</b><button id="vhSopSalir" style="background:#fff;color:#7a5000;border:0;border-radius:9px;padding:8px 12px;font-weight:800;cursor:pointer;min-height:40px">Salir del soporte</button></span>`;
+    $c('vhSopSalir').onclick = () => salirSoporte(false);
+  }
+  async function salirSoporte(venc) {
+    if (!SOP.on) return;
+    clearInterval(SOP.t);
+    auditSop('Soporte salió', (venc ? 'Se terminó el tiempo. ' : '') + 'Estuvo de ' + hhmm(SOP.desde) + ' a ' + hhmm(ahora()) + ' · ' + SOP.cambios + ' cambio(s)');
+    SOP.on = false;
+    try { await db.ref('vh/maestro/soporte/' + VHC.id).remove(); } catch (e) { }
+    try { if (SOP.log) await db.ref('vh/maestro/soporteLog/' + VHC.id + '/' + SOP.log).update({ fin: firebase.database.ServerValue.TIMESTAMP, cambios: SOP.cambios }); } catch (e) { }
+    try { borrarSesionAdm(); } catch (e) { }
+    document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;background:#171531;padding:20px;font-family:system-ui"><div style="background:#fff;border-radius:18px;padding:24px;max-width:420px;text-align:center"><h2 style="margin:0 0 8px">Saliste del soporte</h2><p style="color:#4A4766">${esc(VHC.nom)} · ${SOP.cambios} cambio(s). Quedó todo en su historial y su RR.HH. va a ver el aviso.</p><a href="maestro.html" style="display:inline-block;margin-top:12px;background:#DF4324;color:#fff;border-radius:11px;padding:11px 16px;font-weight:800;text-decoration:none">Volver al panel maestro</a></div></div>`;
+  }
+  async function entrarSoporte() {
+    const a = auth();
+    if (!esDuenoActual()) { toast('Para entrar como soporte, abrilo desde tu panel maestro en este mismo navegador.', 7000); return false; }
+    let s = null;
+    try { s = (await db.ref('vh/maestro/soporte/' + VHC.id).get()).val(); } catch (e) { }
+    if (!s || !(s.hasta > ahora())) { toast('El soporte no está abierto o ya venció. Abrilo de nuevo desde el panel maestro.', 7000); return false; }
+    Object.assign(SOP, { on: true, modo: s.modo === 'cambiar' ? 'cambiar' : 'mirar', motivo: s.motivo || '', hasta: s.hasta, desde: ahora(), cambios: 0, log: s.log || null });
+    parcharEscrituras();
+    auditSop('Soporte entró', (SOP.modo === 'cambiar' ? 'Mirar y arreglar' : 'Solo mirar') + ' · motivo: ' + SOP.motivo);
+    pintarModoAcceso('admin');
+    entrarAdminCon({ dni: 'soporte', nombre: 'Soporte · Vista Humana' });
+    pintarBanner();
+    SOP.t = setInterval(() => { if (SOP.hasta - ahora() <= 0) salirSoporte(true); else pintarBanner(); }, 1000);
+    return true;
+  }
+  const _arr = window.arranqueIdentidad;
+  window.arranqueIdentidad = async function () {
+    if (VHC.soporte) { try { history.replaceState(null, '', location.pathname + '?c=' + VHC.id); } catch (e) { } if (await entrarSoporte()) return true; }
+    return _arr.apply(this, arguments);
+  };
+
+  /* ---------------- PANEL DE RR.HH. del cliente: avisos, pedir ayuda, resumen ---------------- */
+  function cajaAvisos() {
+    let c = $c('vhCliAvisos');
+    const vista = $c('viewAdmin'); if (!vista) return null;
+    if (!c) { c = document.createElement('div'); c.id = 'vhCliAvisos'; c.style.cssText = 'margin:10px 14px 0;display:flex;flex-direction:column;gap:8px'; const ref = vista.querySelector('.admin-tabs') || vista.firstElementChild; (ref && ref.parentNode ? ref.parentNode : vista).insertBefore(c, ref ? ref.nextSibling : vista.firstChild); }
+    return c;
+  }
+  const aviso = (tipo, html) => `<div style="border-radius:12px;padding:10px 12px;font-size:.88rem;line-height:1.4;display:flex;gap:10px;align-items:center;flex-wrap:wrap;${tipo === 'r' ? 'background:#FBE9E9;color:#8C1D1D' : tipo === 'a' ? 'background:#FFF4DA;color:#8A5B00' : 'background:#EEF1FB;color:#2B3A8C'}">${html}</div>`;
+  function pintarAvisos() {
+    if (SOP.on || !admActivo) return;
+    const c = cajaAvisos(); if (!c) return;
+    let h = '';
+    // vencimiento
+    if (VHC.vto) {
+      const dias = Math.ceil((new Date(VHC.vto + 'T23:59:59') - new Date()) / 864e5);
+      if (dias <= 10) h += aviso(dias < 0 ? 'r' : 'a', (VHC.est === 'prueba' ? 'Tu prueba de Vista Humana ' : 'Tu abono de Vista Humana ') + (dias < 0 ? 'venció el ' : 'vence el ') + fdia(VHC.vto + 'T12:00:00') + '. Si ya pagaste, no hagas caso a este aviso.');
+    }
+    // visitas de soporte que todavía no vio
+    let visto = 0; try { visto = Number(localStorage.getItem('vh_sopVisto') || 0); } catch (e) { }
+    const sop = Object.values(DB.auditoria || {}).filter((x) => x && x.soporte && Number(x.ts) > visto && Number(x.ts) > Date.now() - 14 * 864e5).sort((a, b) => a.ts - b.ts);
+    if (sop.length) {
+      const ent = sop.filter((x) => x.accion === 'Soporte entró'), sal = sop.filter((x) => x.accion === 'Soporte salió');
+      const camb = sop.filter((x) => /^Soporte (cambió|agregó)/.test(x.accion)).length;
+      const ult = ent[ent.length - 1] || sop[0];
+      h += aviso('a', `🛟 <span style="flex:1;min-width:200px"><b>Soporte de Vista Humana entró</b> el ${fdia(ult.ts)} a las ${hhmm(ult.ts)}${sal.length ? ' (salió ' + hhmm(sal[sal.length - 1].ts) + ')' : ''}. ${esc((ult.detalle || '').replace(/^.*motivo: /, 'Motivo: '))}. ${camb ? camb + ' cambio(s): están en el historial.' : 'No cambió nada.'}</span><button class="btn mini borde" id="vhSopOk" style="width:auto">Entendido</button>`);
+    }
+    h += aviso('i', `<span style="flex:1;min-width:200px">¿Algo no anda o tenés una duda? Escribile a Vista Humana.</span><button class="btn mini" id="vhAyuda" style="width:auto">Pedir ayuda</button>${PEDIDOS.length ? '<span class="nota" style="width:100%">' + PEDIDOS.slice(-3).map((p) => (p.estado === 'resuelto' ? '✅ ' : '⏳ ') + esc(p.que.slice(0, 60)) + (p.estado === 'resuelto' ? ' · resuelto' : ' · en curso')).join('<br>') + '</span>' : ''}`);
+    c.innerHTML = h;
+    const ok = $c('vhSopOk'); if (ok) ok.onclick = () => { try { localStorage.setItem('vh_sopVisto', String(Date.now())); } catch (e) { } pintarAvisos(); };
+    $c('vhAyuda').onclick = pedirAyuda;
+  }
+  let PEDIDOS = [], refPed = null;
+  function escucharPedidos() {
+    if (refPed || SOP.on) return;
+    try {
+      refPed = db.ref('vh/maestro/ayuda').orderByChild('c').equalTo(VHC.id);
+      refPed.on('value', (s) => { PEDIDOS = Object.values(s.val() || {}).sort((a, b) => a.ts - b.ts); pintarAvisos(); }, () => { refPed = null; });
+    } catch (e) { }
+  }
+  function pedirAyuda() {
+    modal(`<h3>Pedir ayuda a Vista Humana</h3><p class="nota">Contá qué pasa. Si hace falta, el soporte entra a tu panel para ayudarte y queda anotado en tu historial.</p>
+      <label>¿Qué pasa?</label><textarea id="vhAyTxt" rows="4" placeholder="Ej: Lucía Ferreyra no puede confirmar el celular"></textarea>
+      <div class="acciones"><button class="btn" id="vhAyOk">Enviar</button></div><p class="nota" id="vhAyMsg"></p>`);
+    $c('vhAyOk').onclick = async () => {
+      const que = $c('vhAyTxt').value.trim();
+      if (que.length < 8) { $c('vhAyMsg').textContent = 'Contá un poco más.'; return; }
+      $c('vhAyOk').disabled = true;
+      try {
+        await db.ref('vh/maestro/ayuda').push({ c: VHC.id, cliente: VHC.nom, quien: (admQuien && admQuien.nombre) || '', dni: (admQuien && admQuien.dni) || '', que: que.slice(0, 500), ts: firebase.database.ServerValue.TIMESTAMP, estado: 'nuevo' });
+        cerrarModal(); toast('📨 Enviado. Te avisamos acá cuando esté resuelto.');
+      } catch (e) { $c('vhAyOk').disabled = false; $c('vhAyMsg').textContent = '⚠️ No se pudo enviar (' + ((e && e.code) || '') + ').'; }
+    };
+  }
+  /* Resumen para el panel maestro: sólo cantidades */
+  let _resT = null;
+  function escribirResumen() {
+    if (SOP.on || !admActivo || !admQuien || admQuien.dni === 'dueno') return;
+    try {
+      const U = Object.entries(DB.usuarios || {}).filter(([, u]) => u && u.activo !== false && u.nombre);
+      const P = (window.__VH_PADRON__ && window.__VH_PADRON__.PD) || { padron: {}, cuentas: {}, pendientes: {} };
+      const conCel = new Set(Object.values(P.cuentas || {}));
+      const esperando = new Set(Object.entries(P.pendientes || {}).filter(([uid, p]) => p && !P.cuentas[uid]).map(([, p]) => p.dni));
+      const reg = U.filter(([d]) => conCel.has(d)).length, esp = U.filter(([d]) => !conCel.has(d) && esperando.has(d)).length;
+      const hace35 = Date.now() - 35 * 864e5;
+      let recT = 0, recF = 0, nRec = 0, nFoto = 0;
+      Object.values(DB.recibos || {}).forEach((rs) => Object.values(rs || {}).forEach((r) => { nRec++; if (Number(r.ts || r.subido || 0) > hace35 || !r.ts) { recT++; if (r.estado === 'firmado') recF++; } }));
+      Object.values(DB.fichadas || {}).forEach((l) => { nFoto += (Array.isArray(l) ? l.length : Object.keys(l || {}).length); });
+      const feed = Object.values(DB.auditoria || {}).filter((x) => x && x.ts && !x.soporte).sort((a, b) => b.ts - a.ts).slice(0, 8).map((x) => ({ ts: x.ts, q: String(x.quienNombre || '').slice(0, 40), a: String(x.accion || '').slice(0, 80) }));
+      const kb = Math.round(JSON.stringify(DB).length / 1024 + nRec * 90 + nFoto * 25);
+      R('resumen').update({ ts: firebase.database.ServerValue.TIMESTAMP, cargadas: U.length, registradas: reg, esperando: esp, sinRegistrar: U.length - reg - esp,
+        recibosPct: recT ? Math.round(recF / recT * 100) : null, rrhhUlt: firebase.database.ServerValue.TIMESTAMP, rrhhQuien: admQuien.nombre || '', feed, usoKB: kb }).catch(() => { });
+    } catch (e) { console.warn('[resumen]', e); }
+  }
+  const _ent = window.entrarAdminCon;
+  window.entrarAdminCon = function (q) {
+    const r = _ent.apply(this, arguments);
+    if (!SOP.on) {
+      escucharPedidos();
+      setTimeout(() => { pintarAvisos(); escribirResumen(); }, 6000);
+      clearInterval(_resT); _resT = setInterval(() => { escribirResumen(); pintarAvisos(); }, 30 * 60000);
+    }
+    return r;
+  };
+  const _rt = window.renderAdmTodo;
+  if (_rt) window.renderAdmTodo = function () { const r = _rt.apply(this, arguments); try { pintarAvisos(); } catch (e) { } return r; };
+
+  /* Tope de empleados del plan */
+  window.vhTopeOk = function (nuevos) {
+    if (!VHC.tope) return true;
+    const act = Object.values(DB.usuarios || {}).filter((u) => u && u.activo !== false && u.nombre).length;
+    if (act + nuevos <= VHC.tope) return true;
+    toast('Tu plan es de hasta ' + VHC.tope + ' personas (hoy tenés ' + act + '). Para sumar más, pedile a Vista Humana que amplíe el plan.', 7000);
+    return false;
+  };
 })();
 
 </script>

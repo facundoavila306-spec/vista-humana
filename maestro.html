@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#171531">
+<link rel="manifest" href="manifest-maestro.json">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Vista Humana · Panel maestro</title>
+<style>
+:root{--coral:#DF4324;--ind:#171531;--mut:#6A667E;--line:#E4E2EC;--bg:#F4F3F7;--ok:#1E7B4C;--okb:#E8F5EE;--warn:#8A5B00;--warnb:#FFF4DA;--bad:#8C1D1D;--badb:#FBE9E9}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ind)}
+.ban{background:#FFF4DA;color:#7A5600;text-align:center;font-size:12.5px;padding:6px}
+.top{background:var(--ind);color:#fff;display:flex;align-items:center;gap:10px;padding:12px 20px;font-weight:800}
+.top i{width:28px;height:28px;border-radius:8px;background:var(--coral);display:grid;place-items:center;font-style:normal;font-size:13px}
+.top .r{margin-left:auto;font-weight:500;font-size:13px;opacity:.85}
+.wrap{max-width:1180px;margin:0 auto;padding:18px}
+h2{margin:0;font-size:20px}p{margin:0;color:var(--mut);font-size:13.5px;line-height:1.45}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.bar .r{margin-left:auto;display:flex;gap:8px}
+.btn{border:0;background:var(--coral);color:#fff;font-weight:800;border-radius:11px;padding:10px 16px;font-size:14px;cursor:pointer}
+.btn.sec{background:#fff;color:var(--ind);border:1px solid var(--line)}.btn.sm{padding:6px 11px;font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.kpis .kpi{padding:9px 14px;display:flex;align-items:baseline;gap:8px}.kpis .kpi b{font-size:20px;display:inline}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}.kpi b{font-size:24px;display:block}.kpi span{font-size:12px;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.cli{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:box-shadow .15s}
+.cli:hover{box-shadow:0 6px 18px rgba(23,21,49,.1)}
+.cli .h{display:flex;gap:10px;align-items:center}.logo{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;flex:0 0 auto;overflow:hidden}
+.logo img,.lc .lg img,.hdr .lg img{width:100%;height:100%;object-fit:contain;background:#fff;padding:3px}
+.cli .n{font-weight:800}.cli .s{font-size:12px;color:var(--mut)}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700}
+.p-ok{background:var(--okb);color:var(--ok)}.p-prueba{background:#EEF1FB;color:#2B3A8C}.p-susp{background:var(--badb);color:var(--bad)}
+.chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font-size:11px;border-radius:7px;padding:2px 7px;background:#F0EFF5;color:var(--mut)}
+.uso{height:7px;background:#F0EFF5;border-radius:9px;overflow:hidden}.uso i{display:block;height:100%;background:var(--coral)}
+.hide{display:none!important}
+/* editor */
+.ed{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{margin:0 0 4px;font-size:15px}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.f .w{grid-column:1/-1}
+label{font-size:11.5px;font-weight:700;color:var(--mut);display:flex;flex-direction:column;gap:4px;text-transform:uppercase;letter-spacing:.03em}
+input,select{border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:14px;text-transform:none;letter-spacing:0;color:var(--ind)}
+input[type=color]{padding:2px;height:40px;width:100%}
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mod{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13.5px;cursor:pointer}
+.mod input{width:18px;height:18px;accent-color:var(--coral)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);text-align:left;padding:7px;border-bottom:1px solid var(--line)}td{padding:8px 7px;border-bottom:1px solid #F0EFF5}
+.box{border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;margin-top:10px}.box.info{background:#EEF1FB;color:#2B3A8C}.box.warn{background:var(--warnb);color:var(--warn)}
+.link{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#F0EFF5;border-radius:8px;padding:8px 10px;display:flex;gap:8px;align-items:center;margin-top:8px;word-break:break-all}
+/* vista previa */
+.prev{position:sticky;top:14px}
+.phone{width:300px;height:560px;margin:0 auto;border-radius:34px;border:8px solid #1b1a2e;box-shadow:0 10px 30px rgba(23,21,49,.18);overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:18px}
+.lc{background:#fff;border-radius:18px;padding:20px 16px;display:flex;flex-direction:column;gap:9px}
+.lc .lg{width:150px;height:64px;border-radius:12px;margin:0 auto;display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px;overflow:hidden}
+
+.lc .nm{text-align:center;font-weight:800;font-size:17px}.lc .sb{text-align:center;font-size:12px;color:var(--mut)}
+.lc .in{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;color:#aaa}
+.lc .bt{border-radius:11px;padding:11px;text-align:center;color:#fff;font-weight:800;font-size:14px}
+.pw{display:flex;align-items:center;justify-content:center;gap:5px;font-size:10.5px;color:#9a97ab;margin-top:4px}
+.vh{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:5px;background:#DF4324;color:#fff;font-size:7.5px;font-weight:800;font-style:normal}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-weight:700;color:var(--mut);cursor:pointer}.tabs button.on{background:var(--ind);color:#fff;border-color:var(--ind)}
+.pv{display:flex;gap:5px;justify-content:center;margin-bottom:8px}.pv button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--mut);cursor:pointer}.pv button.on{background:var(--coral);color:#fff;border-color:var(--coral)}
+.hdr{border-radius:14px;padding:12px;color:#fff;display:flex;gap:9px;align-items:center}.hdr .lg{width:76px;height:34px;border-radius:8px;display:grid;place-items:center;font-weight:800;overflow:hidden;background:rgba(255,255,255,.18)}
+.app{background:#F7F7FA;border-radius:18px;overflow:hidden;height:100%;display:flex;flex-direction:column}.app .bd{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.app .it{background:#fff;border-radius:12px;padding:10px;font-size:12.5px;border:1px solid var(--line)}
+.rep .k4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rep .k4 .kpi b{font-size:22px}
+.aviso{display:flex;gap:9px;align-items:flex-start;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.4;margin-top:8px}
+.aviso.r{background:var(--badb);color:var(--bad)}.aviso.a{background:var(--warnb);color:var(--warn)}.aviso.v{background:var(--okb);color:var(--ok)}
+.feed div{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0EFF5;font-size:13px}.feed span{color:var(--mut);font-size:12px;min-width:92px}
+.barras{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:10px}.barras div{flex:1;background:var(--coral);border-radius:5px 5px 0 0;position:relative}.barras div b{position:absolute;top:-17px;left:0;right:0;text-align:center;font-size:11px;color:var(--ind)}
+.dias{display:flex;gap:6px}.dias span{flex:1;text-align:center;font-size:11px;color:var(--mut)}
+.cap{text-align:center;font-size:12px;color:var(--mut);margin-top:8px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ind);color:#fff;padding:10px 16px;border-radius:10px;display:none;font-size:13.5px;z-index:9}
+.ov{position:fixed;inset:0;background:rgba(23,21,49,.45);display:grid;place-items:center;z-index:8;padding:16px}
+.mdl{background:#fff;border-radius:18px;padding:20px;width:min(520px,100%);display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
+.mdl h3{margin:0}.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:13.5px}
+.opt input{margin-top:3px;accent-color:var(--coral)}.opt.on{border-color:var(--coral);background:#FDF5F2}
+.sopban{position:sticky;top:0;z-index:7;background:repeating-linear-gradient(135deg,#8A5B00,#8A5B00 14px,#7a5000 14px,#7a5000 28px);color:#fff;display:flex;gap:12px;align-items:center;padding:10px 18px;font-size:13.5px;flex-wrap:wrap}
+.sopban b{font-weight:800}.sopban .r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.sopban button{border:0;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer}
+.rh{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 140px)}
+.rh .side{background:var(--ind);color:#fff;padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.rh .side div{padding:9px 10px;border-radius:9px;font-size:13.5px;opacity:.8;cursor:pointer}.rh .side div.on{background:var(--coral);opacity:1;font-weight:700}
+.rh .main{padding:18px}
+.lock{opacity:.45;cursor:not-allowed!important}
+.btn,.tabs button,.secs button{min-height:44px}.btn.sm{min-height:40px}.pv button{min-height:44px;padding:5px 14px}
+input,select{min-height:44px}
+.chip{font-size:12px}.pill{font-size:12px}label{font-size:12px}.cli .s{font-size:12.5px}.feed span{font-size:12.5px}
+.secs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.secs button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-weight:700;color:var(--mut);cursor:pointer}.secs button.on{border-color:var(--coral);color:var(--coral);background:#FDF5F2}
+.ed.solo{grid-template-columns:1fr}
+.bar.fija{position:sticky;top:0;z-index:6;background:var(--bg);padding:10px 0;margin-top:-10px}
+.tw{overflow-x:auto}
+@media(max-width:900px){.ed{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.prev{position:static}}
+@media(max-width:600px){.wrap{padding:12px}.top .r{display:none}.bar .r{margin-left:0;width:100%}.bar .r .btn{flex:1}
+ .rep .k4{grid-template-columns:1fr 1fr}.f{grid-template-columns:1fr}.mods{grid-template-columns:1fr}
+ .rh{grid-template-columns:1fr}.rh .side{flex-direction:row;overflow-x:auto}.rh .side div{white-space:nowrap}
+ .phone{transform:scale(.9);transform-origin:top center}.ban{font-size:11.5px}.sopban{font-size:12.5px}}
+
+.lgbox{max-width:460px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(23,21,49,.12);overflow:hidden}
+.mod{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ind);font-size:13.5px;flex-direction:row}
+.aviso.i{background:#EEF1FB;color:#2B3A8C}
+.top .r{display:flex;gap:10px;align-items:center}.top .r button{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer;min-height:40px}
+</style></head><body>
+<div id="login" class="hide"></div>
+<div id="app" class="hide">
+<div class="top"><i>VH</i>Vista Humana · Panel maestro<span class="r">Facundo Avila · dueño <button id="btnSalirM">Salir</button></span></div>
+<div class="wrap" id="vLista">
+ <div class="bar"><div><h2>Clientes</h2><p>Cada cliente es una organización que compró Vista. Puede tener una o varias empresas adentro.</p></div>
+  <span class="r"><button class="btn sec" id="btnMuestra">Armar cliente de muestra</button><button class="btn" id="btnNuevo">+ Nuevo cliente</button></span></div>
+ <div class="kpis" id="kpis"></div>
+ <div class="card hide" id="avGen"></div>
+ <div class="card" id="ayuda"></div>
+ <div class="grid" id="grid" style="margin-bottom:12px"></div>
+ <div class="card" id="usoBase"></div>
+</div>
+<div class="wrap hide" id="vEd">
+ <div class="bar fija"><button class="btn sec sm" id="btnVolver">← Clientes</button><h2 id="edTit">Nuevo cliente</h2>
+  <span class="r"><button class="btn sec" id="btnSoporte">Entrar como soporte</button><button class="btn" id="btnGuardar">Guardar</button></span></div>
+ <div class="tabs" id="edTabs"><button class="on" id="tbRep">Cómo anda</button><button id="tbFic">Ficha del cliente</button></div>
+ <div class="rep" id="vRep"></div>
+ <div id="vFic">
+ <div class="secs" id="secs"><button data-s="marca" class="on">Marca</button><button data-s="emp">Empresas</button><button data-s="mod">Módulos</button><button data-s="plan">Plan y cobros</button><button data-s="rrhh">RR.HH. y dirección</button></div>
+ <div class="ed" id="edGrid"><div>
+   <div class="card" data-sec="marca"><h3>Marca</h3><p>Lo que ve su gente al entrar. Si no carga logo, se usan las iniciales.</p>
+    <div class="f">
+     <label class="w">Nombre que ve la gente<input id="fNom"></label>
+     <label class="w">Ciudad (para las actas y notas)<input id="fCiu" placeholder="Ej: Neuquén"></label>
+     <label class="w">Logo (PNG o JPG · se muestra entero, sin recortar · mejor con fondo transparente o blanco)<input type="file" id="fLogo" accept="image/*"></label>
+     <label>Color principal<input type="color" id="fC1"></label>
+     <label>Color de los botones<input type="color" id="fC2"></label>
+    </div><button class="btn sec sm" id="fSinLogo" style="margin-top:10px">Quitar el logo</button></div>
+   <div class="card" data-sec="emp"><h3>Empresas de este cliente</h3><p>Las razones sociales. Cada una con su CUIT y su convenio (para recibos, EPP y liquidación).</p>
+    <div class="tw"><table id="tEmp"></table></div>
+    <button class="btn sec sm" style="margin-top:10px" id="agEmp">+ Agregar empresa</button></div>
+   <div class="card" data-sec="mod"><h3>Módulos que compró</h3><p>Lo apagado no le aparece a nadie de ese cliente (ni a su RR.HH.).</p><div class="mods" id="mods"></div></div>
+   <div class="card" data-sec="plan"><h3>Plan y estado</h3>
+    <div class="f">
+     <label>Estado<select id="fEst"><option value="ok">Activo</option><option value="prueba">De prueba</option><option value="susp">Suspendido</option></select></label>
+     <label>Tope de empleados<input id="fTope" type="number" min="1"></label>
+     <label>Vence la prueba / el abono<input id="fVto" type="date"></label>
+     <label>Precio por empleado (solo para vos)<input id="fPrecio" placeholder="$"></label>
+    </div>
+    <div class="box warn hide" id="boxSusp">Suspendido: su gente ve "Servicio pausado, consultá con RR.HH." y no puede entrar. Los datos no se borran.</div></div>
+   <div class="card" data-sec="plan"><h3>Cobros</h3><p>Solo un registro para vos: la app no cobra. Al registrar un pago se corre el vencimiento.</p>
+    <div class="tw"><table id="tPag"></table></div>
+    <div class="f">
+     <label>Fecha<input id="pgF" type="date"></label><label>Monto<input id="pgM" placeholder="$"></label>
+     <label>Mes que paga<input id="pgP" type="month"></label><label>Medio<select id="pgMe"><option>Transferencia</option><option>Mercado Pago</option><option>Efectivo</option></select></label>
+    </div>
+    <button class="btn sec sm" style="margin-top:10px" id="btnPago">+ Registrar pago</button>
+    <div class="f"><label class="w mod" style="align-items:center;gap:8px"><input type="checkbox" id="pgAuto" checked style="width:18px;height:18px;min-height:0;accent-color:var(--coral)"> Suspender solo si no paga a los <input id="pgGr" type="number" value="10" style="width:70px"> días de vencido (antes le aparece el aviso a su RR.HH.)</label></div>
+    <p style="margin-top:6px">La suspensión automática se hace cuando abrís este panel.</p></div>
+   <div class="card" data-sec="rrhh"><h3>Administrador de RR.HH.</h3><p>Es quien después carga a su gente y nombra a otros administradores. Entra con su DNI y los últimos 4 números del DNI, y confirma su celular con este mail.</p>
+    <div class="f"><label>Nombre<input id="fAdmN"></label><label>DNI<input id="fAdmD" inputmode="numeric" maxlength="8"></label><label class="w">Mail<input id="fAdmM" type="email" autocapitalize="none"></label></div>
+    <div class="box info">Dirección para la gente de este cliente (pasásela a su RR.HH.):</div>
+    <div class="link"><span id="fLink"></span><button class="btn sec sm" id="btnCopiar">Copiar</button></div>
+    <p style="margin-top:8px">Código de la empresa (para la app instalada o el APK): <b id="fCod"></b></p></div>
+  </div>
+  <div class="prev"><div class="pv"><button class="on" id="pv1">Ingreso</button><button id="pv2">Adentro</button><button id="pv3">Panel RR.HH.</button></div><div class="phone" id="ph"></div><div class="cap" id="phCap">Así ve el ingreso su gente</div></div>
+ </div></div>
+</div>
+</div>
+<div id="ovl"></div>
+<div id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+/* Datos inventados para el cliente de muestra (los mismos de la demo) */
+window.__VH_DEMO__ = { db: { _cargar() { } }, LSK: 'x' };
+window.__VH_HASH__={"30111222": "c4a4022b3f6d435413b9c6f682c4bccbcc7f7c47cf38ab22b0248437932cca34", "28904117": "cd8ec30f4f1c5f79d4061e4d0d7575a57dc22db9f363eb36465f13905f1286ca", "39118560": "8f5c73aa8bc520db827390fcd571c268786878694fac1ebbbf4eea63d6bfd982", "36771402": "d488a7095415450ee69ab51f1bd69a2071878ea21f1a326fd9c5983bf962675d", "37640298": "d56fdcde757c7b207a530270663ff7b9f51e49c2d2d79b1d87991e031a686e2f", "30455672": "16761ff22b43194a29052018087f2f0205a11b4466470d2d83595c4058d241a0", "35902144": "95087dc5b19e6e11c02f4bc53ad83160310702e05495cd3d95840756d6adc84e", "38411705": "3c44b5b213b4d6e51f5c0bc7b838d121adf235d839b87b3aed40a194112a4f2d", "27336190": "4c77152c5b85f57c1a333403ffcb838bb4eb477f43af68861083298a1dced3ae", "38950327": "e431e8975524519ba05423f72a13dac2e8409104e72b457314605b5802e84a9c", "41006238": "a7a1d0acb5117ee1bf9503e539b5f487f512ffcade74c375f6c7ec8c2189b2c6", "33870461": "8326412de2669bf989716e3d8d4e7715343c2dab183322248b378d4c315c606d", "40225913": "1f4703821414ef5df3637097253a46149c394fa3b2dd109cf5fb743b66b2888b", "31555888": "4f2b63bc867f54aea0f72810f6cd7829f89b7049879e641218596a12cb7d9c87", "34666999": "309cccb6746c6285930dffdf720f92399d01c84ed90215fceb75951868d49bd4", "35777111": "004b6206f7ccbda651166cecfdfbb8c27f7a80d5e0ef0b297a3c834670574130", "36888222": "a61f378a510ea445dc87fe7796d40a46be8ea5292177c074738f12faad599f96"};
+/* ==== Vista Humana · DEMO · datos ficticios ====
+   Personas, empresas y movimientos inventados. Las fechas se arman a partir de hoy,
+   así la demo siempre se ve "al día". */
+(function () {
+  'use strict';
+  const D = window.__VH_DEMO__;
+  const HASH = window.__VH_HASH__;   // pinHash precalculados (PIN 1234 para todos)
+  const SALT = 'd3m0d3m0d3m0d3m0d3m0d3m0d3m0d3m0';
+  const E_A = 'Andina Herramientas SRL', E_V = 'Distribuidora del Valle SA', E_P = 'Petroservicios del Sur SAS';
+
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const dia = (off) => { const d = new Date(hoy); d.setDate(d.getDate() + off); return d; };
+  const isoOff = (off) => iso(dia(off));
+  const ms = (d, hhmm) => { const [h, m] = hhmm.split(':').map(Number); const x = new Date(d); x.setHours(h, m, Math.floor(Math.random() * 50), 0); return x.getTime(); };
+  const md = (off) => { const d = dia(off); return pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  const nac = (off, anio) => anio + '-' + md(off);
+  const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const perMes = (k) => { const d = new Date(hoy.getFullYear(), hoy.getMonth() - k, 1); return MESES[d.getMonth()] + ' ' + d.getFullYear(); };
+  let seq = 0; const rid = () => (Date.now().toString(36) + (seq++).toString(36) + Math.random().toString(36).slice(2, 6));
+  const ahoraMs = Date.now();
+
+  // ── Personas ─────────────────────────────────────────────────────────────
+  const P = [
+    { dni: '30111222', n: 'FERREYRA, LUCÍA', leg: '127', e: E_A, sec: 'Depósito', ing: '2021-03-15', nac: nac(6, 1993), cal: '39', rop: 'M' },
+    { dni: '28904117', n: 'QUIROGA, MARTÍN', leg: '041', e: E_A, sec: 'Depósito', ing: '2016-06-01', nac: nac(140, 1985), cal: '43', rop: 'L', enc: true },
+    { dni: '39118560', n: 'AGUIRRE, TOMÁS', leg: '188', e: E_A, sec: 'Depósito', ing: '2023-02-06', nac: nac(0, 1997), cal: '42', rop: 'L' },
+    { dni: '36771402', n: 'BENÍTEZ, SOFÍA', leg: '152', e: E_A, sec: 'Depósito', ing: '2022-01-10', nac: nac(-60, 1992), cal: '37', rop: 'S' },
+    { dni: '37640298', n: 'CASTRO, RAMIRO', leg: '163', e: E_A, sec: 'Depósito', ing: '2022-08-22', nac: nac(41, 1994), cal: '44', rop: 'XL' },
+    { dni: '30455672', n: 'SORIA, PAULA', leg: '058', e: E_A, sec: 'Ventas', ing: '2018-09-03', nac: nac(5, 1984), cal: '38', rop: 'M', enc: true },
+    { dni: '35902144', n: 'MÉNDEZ, CARLA', leg: '139', e: E_A, sec: 'Ventas', ing: '2021-11-15', nac: nac(88, 1991), cal: '37', rop: 'S' },
+    { dni: '38411705', n: 'LEDESMA, JOAQUÍN', leg: '177', e: E_A, sec: 'Ventas', ing: '2023-05-02', nac: nac(201, 1996), cal: '42', rop: 'M' },
+    { dni: '27336190', n: 'GARCÍA, LAURA', leg: '010', e: E_A, sec: 'Recursos Humanos', ing: '2014-03-10', nac: nac(-17, 1980), cal: '38', rop: 'M', admin: true },
+    { dni: '38950327', n: 'TORRES, MICAELA', leg: '181', e: E_A, sec: 'Recursos Humanos', ing: '2023-08-14', nac: nac(12, 1995), cal: '37', rop: 'S', admin: true },
+    { dni: '41006238', n: 'RUIZ, VALENTINA', leg: '210', e: E_V, sec: 'Ventas', ing: '2025-01-13', nac: nac(21, 1999), cal: '38', rop: 'S' },
+    { dni: '33870461', n: 'RÍOS, PABLO', leg: '110', e: E_V, sec: 'Reparto', ing: '2020-07-20', nac: nac(-120, 1988), cal: '43', rop: 'L', enc: true },
+    { dni: '40225913', n: 'GÓMEZ, FLORENCIA', leg: '201', e: E_V, sec: 'Reparto', ing: '2024-04-01', nac: nac(14, 1998), cal: '38', rop: 'M' },
+    { dni: '31555888', n: 'PAREDES, DIEGO', leg: '022', e: E_P, sec: 'Operaciones', ing: '2015-05-11', nac: nac(77, 1983), cal: '42', rop: 'L', enc: true, diag: true },
+    { dni: '34666999', n: 'VERA, NICOLÁS', leg: '149', e: E_P, sec: 'Operaciones', ing: '2021-06-28', nac: nac(-3, 1990), cal: '41', rop: 'L', diag: true },
+    { dni: '35777111', n: 'OJEDA, CRISTIAN', leg: '158', e: E_P, sec: 'Operaciones', ing: '2022-02-14', nac: nac(160, 1991), cal: '43', rop: 'XL', diag: true },
+    { dni: '36888222', n: 'LUNA, MATÍAS', leg: '171', e: E_P, sec: 'Obra civil (UOCRA)', ing: '2023-03-01', nac: nac(33, 1993), cal: '44', rop: 'XL', diag: true }
+  ];
+  const por = {}; P.forEach((p) => { por[p.dni] = p; });
+  const EQUIPOS = [
+    { id: 'eq_deposito', nombre: 'Depósito', empresa: E_A, enc: ['28904117'], mi: ['30111222', '39118560', '36771402', '37640298'] },
+    { id: 'eq_ventas', nombre: 'Ventas', empresa: E_A, enc: ['30455672'], mi: ['35902144', '38411705'] },
+    { id: 'eq_reparto', nombre: 'Reparto y ventas', empresa: E_V, enc: ['33870461'], mi: ['41006238', '40225913'] },
+    { id: 'eq_operaciones', nombre: 'Operaciones', empresa: E_P, enc: ['31555888'], mi: ['34666999', '35777111', '36888222'] }
+  ];
+  const supsDe = {}; EQUIPOS.forEach((q) => q.mi.forEach((d) => { supsDe[d] = q.enc; }));
+  const EK = { [E_A]: 'ANDINA', [E_V]: 'VALLE', [E_P]: 'PETRO' };
+  const CORTO = { [E_A]: 'Andina', [E_V]: 'Valle', [E_P]: 'Petro' };
+  const CICLO = isoOff(-9);   // inicio del 14x7 de Petroservicios
+
+  function enDiagrama(off) { const d = Math.round((dia(off) - new Date(CICLO + 'T00:00:00')) / 864e5); const r = ((d % 21) + 21) % 21; return r < 14; }
+
+  const PUESTO = { '28904117': 'Autoelevadorista', '39118560': 'Autoelevadorista', '37640298': 'Autoelevadorista', '30111222': 'Operaria de depósito', '36771402': 'Operaria de depósito', '30455672': 'Vendedora', '35902144': 'Vendedora', '38411705': 'Vendedor', '41006238': 'Vendedora', '33870461': 'Chofer de reparto', '40225913': 'Repartidora', '31555888': 'Supervisor de operaciones', '34666999': 'Chofer', '35777111': 'Operador de equipos', '36888222': 'Oficial albañil', '27336190': 'Jefa de RR.HH.', '38950327': 'Analista de RR.HH.' };
+  const usuarios = {};
+  P.forEach((p) => {
+    const u = {
+      nombre: p.n, legajo: p.leg, empresa: p.e, dni: p.dni, salt: SALT, pinHash: HASH[p.dni], activo: true, creado: ahoraMs - 86400000 * 200,
+      ultimoAcceso: ahoraMs - 3600000 * (2 + (Number(p.leg) % 30)),
+      adhesion: { ts: ahoraMs - 86400000 * 150, version: '1.0', hash: 'demo', dispositivo: 'Demo' },
+      ficha: {
+        cuil: '27-' + p.dni + '-' + (Number(p.dni) % 9), nacimiento: p.nac, estadoCivil: 'Soltero/a', telefono: '261 4' + p.dni.slice(-6), email: '',
+        ingreso: p.ing, domicilio: { calle: 'Calle ' + (Number(p.leg) * 7) + ' n.º ' + (100 + Number(p.leg)), localidad: 'Godoy Cruz', provincia: 'Mendoza', cp: '5501' },
+        laboral: { sector: p.sec, ingreso: p.ing, puesto: PUESTO[p.dni] || 'Administrativo/a', categoria: p.enc ? 'Encargado/a' : (PUESTO[p.dni] || 'Administrativo/a'), dias: p.diag ? 'todos' : 'lv', horario: { entrada: p.diag ? '07:00' : '08:00' } },
+        familia: { conyuge: { nombre: '', dni: '' }, hijos: [] }, emergencia: { nombre: 'Familiar de ' + p.n.split(',')[1].trim(), vinculo: 'Familiar', telefono: '261 555 0' + p.leg },
+        talles: { calzado: p.cal, ropa: p.rop }, extras: ''
+      }
+    };
+    if (p.admin) u.esAdmin = true;
+    if (p.enc) u.esSupervisor = true;
+    if (supsDe[p.dni]) { u.sups = ',' + supsDe[p.dni].slice().sort().join(',') + ','; u.supervisor = supsDe[p.dni][0]; }
+    if (p.diag) u.diagramaTramos = [{ from: '', tipo: '14x7', cycleStart: CICLO }];
+    if (p.sec.indexOf('UOCRA') >= 0) u.ficha.convenio = 'UOCRA';
+    usuarios[p.dni] = u;
+  });
+
+  const equipos = {};
+  EQUIPOS.forEach((q) => { equipos[q.id] = { nombre: q.nombre, empresa: q.empresa, encargados: Object.fromEntries(q.enc.map((d) => [d, true])), miembros: Object.fromEntries(q.mi.map((d) => [d, true])), ts: ahoraMs - 86400000 * 90 }; });
+
+  // ── Fichadas de los últimos 30 días y de hoy ─────────────────────────────
+  const fichadas = {};
+  const hoyLic = { '36771402': true };            // Sofía, de licencia
+  const sinFicharHoy = { '38411705': true, '27336190': true };   // Lucía ya entró: en la demo se prueba la salida (también con foto y ubicación)   // Lucía ficha en la demo
+  const tardeHoy = { '37640298': '08:12' };
+  function marca(dni, d, tipo, hhmm, extra) {
+    const p = por[dni], t = ms(d, hhmm), id = 'f_' + t + '_' + Math.random().toString(36).slice(2, 7);
+    (fichadas[dni] = fichadas[dni] || {})[id] = Object.assign({
+      id, dni, nombre: p.n, legajo: p.leg, empresa: p.e, tipo, ts: t, tsServidor: t + 900,
+      geo: { lat: -32.9263 + (Number(p.leg) % 7) * 0.0001, lng: -68.8441 + (Number(p.leg) % 5) * 0.0001, acc: 12 + (Number(p.leg) % 20), source: 'fresh' },
+      offline: false, origen: 'portal', conFoto: true, lugarTexto: p.e === E_P ? 'Base Luján de Cuyo' : 'Godoy Cruz, Mendoza'
+    }, extra || {});
+  }
+  P.forEach((p) => {
+    for (let off = -30; off <= 0; off++) {
+      const d = dia(off), wd = d.getDay();
+      if (p.diag) { if (!enDiagrama(off)) continue; }
+      else if (wd === 0 || wd === 6) continue;
+      if (dia(off) < new Date(p.ing + 'T00:00:00')) continue;
+      if (p.dni === '36771402' && off >= -2) continue;
+      const h = (Number(p.dni.slice(-3)) + off * 7 + 1000) % 17;
+      if (off === 0) {
+        if (hoyLic[p.dni] || sinFicharHoy[p.dni]) continue;
+        if (ms(d, tardeHoy[p.dni] || (p.diag ? '06:59' : '07:59')) > Date.now()) continue;   // todavía no es la hora
+        if (tardeHoy[p.dni]) { marca(p.dni, d, 'entrada', tardeHoy[p.dni], { horarioDia: '8:00', tardeMin: 12, tardeEstado: 'sin', tardeVence: ahoraMs + 48 * 3600000 }); continue; }
+        marca(p.dni, d, 'entrada', p.diag ? '06:5' + (h % 9) : '07:' + (42 + h), p.diag ? {} : { horarioDia: '8:00' });
+        continue;
+      }
+      if (h === 3 && !p.diag && off < -2) continue;   // algún día sin fichar
+      const ent = p.diag ? '06:5' + (h % 9) : (h === 11 ? '08:0' + (5 + (h % 4)) : '07:' + (42 + h));
+      const extra = p.diag ? {} : { horarioDia: '8:00' };
+      if (!p.diag && h === 11) Object.assign(extra, { tardeMin: 5 + (h % 4) - 4 > 0 ? 5 + (h % 4) - 4 : 1, tardeEstado: off < -5 ? 'ok' : 'sin' });
+      marca(p.dni, d, 'entrada', ent, extra);
+      marca(p.dni, d, 'salida', p.diag ? '19:0' + (h % 9) : '16:0' + (h % 9));
+    }
+  });
+
+  // ── Quién está trabajando (presencia y plantel por empresa) ──────────────
+  const presencia = {}, plantel = {};
+  P.forEach((p) => {
+    const k = EK[p.e];
+    (plantel[k] = plantel[k] || {})[p.dni] = { nombre: p.n, legajo: p.leg };
+    const fs = Object.values(fichadas[p.dni] || {}).filter((f) => f.ts >= hoy.getTime()).sort((a, b) => b.ts - a.ts);
+    if (fs.length) (presencia[k] = presencia[k] || {})[p.dni] = { nombre: p.n, legajo: p.leg, tipo: fs[0].tipo, ts: fs[0].ts, mom: null };
+    if (hoyLic[p.dni]) (presencia[k] = presencia[k] || {})[p.dni] = { nombre: p.n, legajo: p.leg, tipo: 'salida', ts: hoy.getTime() - 86400000 * 3, mom: null, lic: isoOff(4) };
+  });
+
+  // ── Solicitudes en distintos estados ─────────────────────────────────────
+  const solicitudes = {};
+  function sol(dni, tipo, datos, estado, extra) {
+    const id = 'sol_' + (ahoraMs - Math.floor(Math.random() * 1e6)) + '_' + Math.random().toString(36).slice(2, 6);
+    const s = supsDe[dni] || [];
+    solicitudes[id] = Object.assign({ dni, tipo, datos, estado, supervisor: s[0] || null, sups: s.length ? ',' + s.slice().sort().join(',') + ',' : null, adjunto: false, ts: ahoraMs - 3600000 * (1 + Object.keys(solicitudes).length * 5) }, extra || {});
+    if (solicitudes[id].resueltoTs) solicitudes[id].ts = solicitudes[id].resueltoTs - 3600000 * 7;
+    return id;
+  }
+  sol('37640298', 'salidaMom', { fecha: isoOff(0), hora: '10:00', durMin: 60, motivo: 'Trámite en el banco' }, 'pendiente');
+  sol('39118560', 'vacaciones', { desde: isoOff(25), hasta: isoOff(38) }, 'pendiente-sup');
+  sol('38411705', 'permiso', { fecha: isoOff(2), horario: '09:00 a 11:00', todoElDia: false, motivo: 'Consulta o turno médico' }, 'pendiente-sup');
+  sol('35902144', 'anticipo', { monto: 150000, motivo: 'Arreglo del auto' }, 'pendiente');
+  sol('34666999', 'prestamo', { monto: 600000, cuotas: 6, tasa: 0.03, cuotaMensual: 110758.4, totalPagar: 664550.4, interes: 64550.4 }, 'pendiente');
+  sol('40225913', 'vacaciones', { desde: isoOff(45), hasta: isoOff(54) }, 'pendiente-sup');
+  sol('30111222', 'permiso', { fecha: isoOff(-8), horario: '15:00 a 17:00', todoElDia: false, motivo: 'Trámite personal' }, 'aprobada', { respuesta: 'Aprobado. Avisale a tu encargado cuando vuelvas.', resueltoTs: ahoraMs - 86400000 * 9, vistoResp: true });
+  sol('30111222', 'epp', { elemento: 'Guantes de trabajo', talle: 'M', cantidad: 1, motivo: 'Los anteriores se rompieron' }, 'aprobada', { resueltoTs: ahoraMs - 86400000 * 5, vistoResp: true });
+  sol('41006238', 'licencia', { nombre: 'Examen (estudios medios o universitarios)', desde: isoOff(-6), hasta: isoOff(-5), dias: 2, motivo: 'Final de Contabilidad' }, 'aprobada', { resueltoTs: ahoraMs - 86400000 * 7 });
+  sol('35777111', 'retiro', { fecha: isoOff(-4), hora: '16:00', motivo: 'Turno médico' }, 'rechazada', { respuesta: 'Ese día estaba la auditoría de seguridad. Pedilo para otro día.', resueltoTs: ahoraMs - 86400000 * 5 });
+
+  const deudas = {};
+  deudas['d1'] = { dni: '34666999', concepto: 'Préstamo personal', total: 300000, cuotas: 6, cuotaMensual: 52000, interes: 12000, desde: isoOff(-95).slice(0, 7), cuotasPagadas: 3, ts: ahoraMs - 86400000 * 100 };
+  deudas['d2'] = { dni: '30111222', concepto: 'Compra · taladro percutor', total: 98000, cuotas: 3, cuotaMensual: 32667, interes: 0, desde: isoOff(-35).slice(0, 7), cuotasPagadas: 1, ts: ahoraMs - 86400000 * 40 };
+
+  // ── Novedades ────────────────────────────────────────────────────────────
+  const novedades = {
+    n1: { empresa: 'todas', titulo: 'Cierre por inventario', cuerpo: 'El viernes cerramos a las 15:00 por el inventario anual. Gracias a todos por la mano.', fijada: true, img: false, ts: ahoraMs - 3600000 * 20 },
+    n2: { empresa: E_P, titulo: 'Simulacro de evacuación', cuerpo: 'El martes a las 10:00 hacemos el simulacro en la base. Llevá tu casco y chaleco.', fijada: false, img: false, ts: ahoraMs - 86400000 * 3 },
+    n3: { empresa: 'todas', titulo: 'Ropa de verano', cuerpo: 'Ya llegó la ropa de verano. Pedila desde la app en Pedidos › EPP con tu talle.', fijada: false, img: false, ts: ahoraMs - 86400000 * 6 }
+  };
+  const novReacciones = { n1: { '28904117': { e: '👍', ts: ahoraMs - 3600000 * 18 }, '39118560': { e: '👏', ts: ahoraMs - 3600000 * 17 }, '30455672': { e: '👍', ts: ahoraMs - 3600000 * 15 } }, n3: { '37640298': { e: '❤️', ts: ahoraMs - 86400000 * 5 } } };
+
+  // ── Recibos y firmas ─────────────────────────────────────────────────────
+  const recibos = {}, firmas = {};
+  P.forEach((p, i) => {
+    recibos[p.dni] = {};
+    const r2 = 'r_' + p.dni + '_2', r1 = 'r_' + p.dni + '_1';
+    recibos[p.dni][r2] = { periodo: perMes(2), tipo: 'Mensual', archivo: 'Recibo ' + perMes(2) + '.pdf', hash: 'demo' + i + 'b', estado: 'firmado', ts: ahoraMs - 86400000 * 50 };
+    const firmo = !['30111222', '37640298', '38411705', '35777111', '40225913'].includes(p.dni);
+    recibos[p.dni][r1] = { periodo: perMes(1), tipo: 'Mensual', archivo: 'Recibo ' + perMes(1) + '.pdf', hash: 'demo' + i + 'a', estado: firmo ? 'firmado' : (i % 2 ? 'visto' : 'pendiente'), ts: ahoraMs - 86400000 * 18 };
+    firmas[p.dni] = { [r2]: { hashPdf: 'demo', periodo: perMes(2), archivo: 'Recibo ' + perMes(2) + '.pdf', fechaLocal: isoOff(-46), ts: ahoraMs - 86400000 * 46, dni: p.dni, nombre: p.n, dispositivo: 'Android' } };
+    if (firmo) firmas[p.dni][r1] = { hashPdf: 'demo', periodo: perMes(1), archivo: 'Recibo ' + perMes(1) + '.pdf', fechaLocal: isoOff(-15), ts: ahoraMs - 86400000 * 15, dni: p.dni, nombre: p.n, dispositivo: 'Android' };
+  });
+
+  // ── Documentos ───────────────────────────────────────────────────────────
+  const todos = P.map((p) => p.dni);
+  const docEstados = (lista, firmados) => Object.fromEntries(lista.filter((d) => firmados.includes(d)).map((d) => [d, { visto: ahoraMs - 86400000 * 4, firmado: ahoraMs - 86400000 * 4, hashPdf: 'demo', nombre: por[d].n, dispositivo: 'Android', fechaLocal: isoOff(-4) }]));
+  const firmanteRRHH = { nombre: 'GARCÍA, LAURA', cargo: 'JEFA DE RECURSOS HUMANOS', legajo: '010', ts: ahoraMs - 86400000 * 10 };
+  const documentos = {
+    doc_reglamento: { titulo: 'Reglamento interno 2026', categoria: 'reglamento', confirmacion: 'firma', destinatarios: todos, ts: ahoraMs - 86400000 * 10, firmante: firmanteRRHH, posEmpleado: null, vence: null, estados: docEstados(todos, todos.filter((d) => !['30111222', '37640298', '40225913', '36888222'].includes(d))) },
+    doc_protocolo: { titulo: 'Protocolo ante accidentes', categoria: 'notificacion', confirmacion: 'lectura', destinatarios: todos, ts: ahoraMs - 86400000 * 6, firmante: firmanteRRHH, posEmpleado: null, vence: null, estados: docEstados(todos, ['28904117', '30455672', '27336190', '31555888', '33870461']) },
+    doc_llamado: { titulo: 'Llamado de atención por llegadas tarde', categoria: 'llamado', confirmacion: 'firma', destinatarios: ['37640298'], ts: ahoraMs - 86400000 * 2, firmante: firmanteRRHH, posEmpleado: null, vence: null, estados: {}, dni: '37640298' }
+  };
+  const TEXTOS_DOC = {
+    doc_reglamento: ['Este reglamento ordena la convivencia y el trabajo diario.', 'El ingreso se registra con la app desde el lugar de trabajo, con foto y ubicación.', 'Los permisos y las salidas se piden por la app. Los aprueba el encargado de cada equipo y después RR.HH.', 'La ropa de trabajo y los elementos de protección personal son obligatorios en el depósito y en la base.', 'Los recibos de sueldo y las notificaciones se firman en la app con el PIN personal.'],
+    doc_protocolo: ['Ante un accidente, avisá a tu encargado y llamá al número de la ART que figura en tu credencial.', 'No muevas a la persona accidentada salvo que haya peligro inmediato.', 'Completá el aviso de accidente dentro de las 24 horas.'],
+    doc_llamado: ['Por medio de la presente se le notifica que en el último mes registró llegadas tarde sin justificar.', 'Se le solicita ajustarse al horario de ingreso de las 8:00.', 'La reiteración podrá dar lugar a las medidas disciplinarias que correspondan.']
+  };
+
+  // ── EPP ──────────────────────────────────────────────────────────────────
+  const cat = {
+    e_botin: { nombre: 'Botines de seguridad', categoria: 'Calzado', talle: 'calzado', activo: true },
+    e_ropa: { nombre: 'Ropa de trabajo (pantalón y camisa)', categoria: 'Ropa', talle: 'ropa', activo: true },
+    e_guantes: { nombre: 'Guantes de trabajo', categoria: 'Manos', talle: 'ropa', activo: true },
+    e_anti: { nombre: 'Antiparras', categoria: 'Ojos', talle: '', activo: true },
+    e_casco: { nombre: 'Casco', categoria: 'Cabeza', talle: '', activo: true },
+    e_auditivo: { nombre: 'Protector auditivo', categoria: 'Oídos', talle: '', activo: true }
+  };
+  const cfgEpp = {}; ['ANDINA', 'VALLE', 'PETRO'].forEach((k) => { cfgEpp[k] = { cat: clone(cat), stock: { e_botin: 4, e_ropa: 6, e_guantes: 20, e_anti: 8, e_casco: 5, e_auditivo: 15 }, traido: true }; });
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  const epp = {};
+  function entrega(dni, eid, offEnt, offVto, talle) { const p = por[dni]; (epp[dni] = epp[dni] || {})['ep_' + rid()] = { eppId: eid, elemento: cat[eid].nombre, ek: EK[p.e], cantidad: 1, entrega: isoOff(offEnt), vencimiento: isoOff(offVto), talle: talle || '', marca: '', modelo: '', certificado: '', observ: '', origen: 'Vista', firmaReq: true, porQuien: 'GARCÍA, LAURA', ts: dia(offEnt).getTime() }; }
+  P.forEach((p) => {
+    if (p.sec === 'Recursos Humanos' || p.sec === 'Ventas') return;
+    entrega(p.dni, 'e_botin', -200, p.dni === '30111222' || p.dni === '35777111' ? -20 : 160, p.cal);
+    entrega(p.dni, 'e_ropa', -150, 210, p.rop);
+    if (p.e === E_P) { entrega(p.dni, 'e_casco', -300, 65, ''); entrega(p.dni, 'e_anti', -90, 270, ''); }
+  });
+
+  // ── Habilitaciones (carnets, cursos y exámenes) ──────────────────────────
+  const hab = {
+    PETRO: { req: { h1: { tipo: 'carnet', nombre: 'Licencia de conducir profesional', vida: 60, aplica: ['todos'], activo: true, ts: 0 }, h2: { tipo: 'curso', nombre: 'Curso de manejo defensivo', vida: 24, aplica: ['todos'], activo: true, ts: 0 }, h3: { tipo: 'examen', nombre: 'Examen médico periódico', vida: 12, aplica: ['todos'], activo: true, ts: 0 } }, traido: true, ver: { carnet: true, curso: true, examen: true, venc: true } },
+    ANDINA: { req: { h4: { tipo: 'carnet', nombre: 'Carnet de autoelevador', vida: 24, aplica: ['Autoelevadorista'], activo: true, ts: 0 } }, traido: true, ver: { carnet: true, curso: true, examen: true, venc: false } },
+    VALLE: { req: {}, traido: true, ver: { carnet: true, curso: true, examen: true, venc: false } }
+  };
+  const habilitaciones = {};
+  function habi(dni, req, tipo, nombre, offFecha, offVence, extra) { (habilitaciones[dni] = habilitaciones[dni] || {})['hb_' + rid()] = Object.assign({ ek: EK[por[dni].e], req, tipo, nombre, fecha: isoOff(offFecha), vence: isoOff(offVence), origen: 'Vista', porQuien: 'GARCÍA, LAURA', ts: dia(offFecha).getTime() }, extra || {}); }
+  habi('31555888', 'h1', 'carnet', 'Licencia de conducir profesional', -700, 1100, { cat: 'D1', numero: '31555888' });
+  habi('31555888', 'h2', 'curso', 'Curso de manejo defensivo', -500, 230);
+  habi('31555888', 'h3', 'examen', 'Examen médico periódico', -300, 65, { resultado: 'APTO' });
+  habi('34666999', 'h1', 'carnet', 'Licencia de conducir profesional', -1200, 18, { cat: 'D1', numero: '34666999' });
+  habi('34666999', 'h3', 'examen', 'Examen médico periódico', -380, -15, { resultado: 'APTO' });
+  habi('35777111', 'h2', 'curso', 'Curso de manejo defensivo', -200, 530);
+  habi('35777111', 'h3', 'examen', 'Examen médico periódico', -100, 265, { resultado: 'APTO CONDICIONAL' });
+  habi('36888222', 'h3', 'examen', 'Examen médico periódico', -60, 305, { resultado: 'APTO' });
+  habi('28904117', 'h4', 'carnet', 'Carnet de autoelevador', -650, 80, { numero: 'AE-2041' });
+  habi('39118560', 'h4', 'carnet', 'Carnet de autoelevador', -720, 9, { numero: 'AE-2188' });
+
+  // ── Cursos online ────────────────────────────────────────────────────────
+  const cursoTexto = {
+    titulo: 'Uso de matafuegos', minAciertos: 2,
+    capitulos: [{ titulo: 'Antes de usarlo', laminas: [
+      { titulo: 'Tipos de fuego', texto: 'A: sólidos como madera y papel.\nB: líquidos inflamables como nafta y aceite.\nC: equipos eléctricos con tensión.', clave: 'Mirá la etiqueta del matafuego: dice para qué fuegos sirve.' },
+      { titulo: 'Cómo se usa', texto: 'Sacá el precinto, apuntá a la base del fuego y apretá la palanca moviendo la boquilla de lado a lado.', clave: 'Siempre a la base del fuego, nunca a las llamas.' }] }],
+    examen: [
+      { pregunta: '¿A dónde se apunta el matafuego?', opciones: ['A las llamas', 'A la base del fuego', 'Al humo'], correcta: 1 },
+      { pregunta: '¿Qué tipo de fuego es el de un tablero eléctrico con tensión?', opciones: ['A', 'B', 'C'], correcta: 2 },
+      { pregunta: '¿Qué hacés primero?', opciones: ['Sacar el precinto', 'Apretar la palanca', 'Sacudirlo'], correcta: 0 }]
+  };
+  const cursos = {
+    c_matafuegos: { titulo: 'Uso de matafuegos', url: null, contenido: cursoTexto, version: '1.0', vence: null, repite: 12, empresa: null, ts: ahoraMs - 86400000 * 30, paraTodos: true },
+    c_cargas: { titulo: 'Levantamiento seguro de cargas', url: null, contenido: Object.assign(clone(cursoTexto), { titulo: 'Levantamiento seguro de cargas', capitulos: [{ titulo: 'Postura', laminas: [{ titulo: 'Doblá las rodillas', texto: 'Para levantar algo pesado doblá las rodillas y mantené la espalda recta.', clave: 'La fuerza la hacen las piernas.' }, { titulo: 'Pedí ayuda', texto: 'Si la carga pesa más de 25 kg, levantala entre dos o usá el autoelevador.', clave: 'Más de 25 kg: entre dos.' }] }], examen: [{ pregunta: '¿Quién hace la fuerza al levantar?', opciones: ['La espalda', 'Las piernas', 'Los brazos'], correcta: 1 }, { pregunta: 'Una carga de 40 kg se levanta…', opciones: ['Solo', 'Entre dos o con autoelevador', 'Arrastrándola'], correcta: 1 }], minAciertos: 2 }), version: '1.0', vence: null, repite: 24, empresa: E_A, ts: ahoraMs - 86400000 * 12, paraTodos: true }
+  };
+  const capacitaciones = {};
+  ['28904117', '39118560', '30455672', '27336190', '31555888', '34666999'].forEach((d) => { (capacitaciones[d] = {}).c_matafuegos = { ts: ahoraMs - 86400000 * 20, version: '1.0', aciertos: 3, total: 3, dispositivo: 'Android', hash: 'demo' }; });
+
+  // ── Vacaciones, eventos, cumpleaños ──────────────────────────────────────
+  const anio = String(hoy.getFullYear());
+  const vacaciones = {};
+  P.forEach((p, i) => { vacaciones[p.dni] = { [anio]: { derechoManual: null, yaTomados: [0, 7, 0, 14, 0, 10, 0, 0, 14, 7, 0, 14, 0, 21, 7, 0, 0][i] || 0, nota: '' } }; });
+  const agendaVac = { '30455672': { va1: { desde: isoOff(60), hasta: isoOff(73), nombre: 'SORIA, PAULA', ts: ahoraMs - 86400000 * 4 } }, '35777111': { va2: { desde: isoOff(-2), hasta: isoOff(8), nombre: 'OJEDA, CRISTIAN', ts: ahoraMs - 86400000 * 20 } } };
+  const eventosPersonal = { '36771402': { ev1: { tipo: 'licencia', desde: isoOff(-2), hasta: isoOff(4), detalle: 'Licencia médica' } }, '35777111': { ev2: { tipo: 'vacaciones', desde: isoOff(-2), hasta: isoOff(8), detalle: 'Vacaciones' } } };
+  const cumpleanos = {};
+  P.forEach((p) => { const g = EK[p.e] === 'PETRO' ? 'PETRO' : 'ANDINA'; const n = p.n.split(',').map((s) => s.trim().toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase())); (cumpleanos[g] = cumpleanos[g] || {})[p.dni] = { n: n[1] + ' ' + n[0], d: p.nac.slice(5), s: p.sec, e: CORTO[p.e] }; });
+  const cumpleSaludos = { '39118560': { [anio]: { '28904117': { e: '🎉', n: 'Martín Quiroga', ts: ahoraMs - 3600000 * 3 }, '30455672': { e: '🎂', n: 'Paula Soria', ts: ahoraMs - 3600000 * 2 }, '37640298': { e: '🥳', n: 'Ramiro Castro', ts: ahoraMs - 3600000 } } } };
+
+  // ── Configuración por empresa ────────────────────────────────────────────
+  const config = {
+    porEmpresa: {
+      [E_A]: { titulo: 'Andina Herramientas', texto: '', firmante: 'MÉNDEZ, RAÚL', caracter: 'SOCIO GERENTE' },
+      [E_V]: { titulo: 'Distribuidora del Valle', texto: '', firmante: 'ROMERO, ANA LUCÍA', caracter: 'PRESIDENTA' },
+      [E_P]: { titulo: 'Petroservicios del Sur', texto: '', firmante: 'ROMERO, ANA LUCÍA', caracter: 'ADMINISTRADORA TITULAR' }
+    },
+    modulos: {
+      [E_A]: { fichaje: true, presencia: true, calendario: true, deudasResumen: true, recibos: true, docs: true, pedidos: true, habilitaciones: true, epp: true, cursos: true },
+      [E_V]: { fichaje: true, presencia: true, calendario: true, deudasResumen: true, recibos: true, docs: true, pedidos: true, habilitaciones: false, epp: true, cursos: true },
+      [E_P]: { fichaje: true, presencia: true, calendario: true, deudasResumen: true, recibos: true, docs: true, pedidos: true, habilitaciones: true, epp: true, cursos: true }
+    },
+    horarios: { [E_A]: { __default: { entrada: '08:00' } }, [E_V]: { __default: { entrada: '08:00' } } },
+    planesPrestamo: { [E_A]: [{ cuotas: 3, tasa: 0 }, { cuotas: 6, tasa: 3 }, { cuotas: 12, tasa: 5 }], [E_V]: [{ cuotas: 3, tasa: 0 }, { cuotas: 6, tasa: 3 }], [E_P]: [{ cuotas: 3, tasa: 0 }, { cuotas: 6, tasa: 3 }, { cuotas: 12, tasa: 5 }] },
+    avisosFirma: { [E_A]: { activo: true, dias: 3 }, [E_V]: { activo: true, dias: 3 }, [E_P]: { activo: true, dias: 3 } },
+    epp: cfgEpp, hab
+  };
+  const catalogos = {
+    [E_A]: { sector: { deposito: 'Depósito', ventas: 'Ventas', recursoshumanos: 'Recursos Humanos' } },
+    [E_V]: { sector: { ventas: 'Ventas', reparto: 'Reparto' } },
+    [E_P]: { sector: { operaciones: 'Operaciones', obracivil: 'Obra civil (UOCRA)' } }
+  };
+
+  const auditoria = {};
+  [['GARCÍA, LAURA', 'Publicó recibos', perMes(1) + ' · 17 personas', null, 18], ['QUIROGA, MARTÍN', 'Aprobó un pedido', 'Permiso de FERREYRA, LUCÍA', '30111222', 9], ['GARCÍA, LAURA', 'Entrega de EPP', 'Guantes de trabajo a FERREYRA, LUCÍA', '30111222', 5], ['TORRES, MICAELA', 'Publicó un documento', 'Llamado de atención por llegadas tarde', '37640298', 2]].forEach(([q, a, det, sobre, d], i) => { auditoria['a' + i] = { ts: ahoraMs - 86400000 * d, quien: q === 'GARCÍA, LAURA' ? '27336190' : q === 'TORRES, MICAELA' ? '38950327' : '28904117', quienNombre: q, accion: a, detalle: det, sobre }; });
+
+  const y = hoy.getFullYear();
+  const feriados = {}; [['01-01', 'Año Nuevo'], ['03-24', 'Día de la Memoria'], ['04-02', 'Día del Veterano y de los Caídos en Malvinas'], ['05-01', 'Día del Trabajador'], ['05-25', 'Revolución de Mayo'], ['06-20', 'Paso a la Inmortalidad del Gral. Belgrano'], ['07-09', 'Día de la Independencia'], ['08-17', 'Paso a la Inmortalidad del Gral. San Martín'], ['10-12', 'Día del Respeto a la Diversidad Cultural'], ['11-23', 'Día de la Soberanía Nacional'], ['12-08', 'Inmaculada Concepción de María'], ['12-25', 'Navidad']].forEach(([d, n]) => { feriados[y + '-' + d] = n; feriados[(y + 1) + '-' + d] = n; });
+
+  const datos = {
+    config, usuarios, equipos, fichadas, presencia, plantel, solicitudes, deudas, novedades, novReacciones, recibos, firmas, documentos,
+    categoriasExtra: {}, campanas: {}, epp, eppMov: {}, habilitaciones, habObs: {}, cursos, capacitaciones, vacaciones, agendaVac, eventosPersonal,
+    cumpleanos, cumpleSaludos, cumplePref: {}, auditoria, feriados, catalogos, sugerencias: {}, recordatorios: {}, vistas: {},
+    licenciasLey: {
+      l1: { nombre: 'Matrimonio', dias: 10, fuente: 'LCT art. 158 inc. b', empresa: '' },
+      l2: { nombre: 'Nacimiento de hijo/a', dias: 2, fuente: 'LCT art. 158 inc. a', empresa: '' },
+      l3: { nombre: 'Fallecimiento de cónyuge, hijo/a o padres', dias: 3, fuente: 'LCT art. 158 inc. c', empresa: '' },
+      l4: { nombre: 'Fallecimiento de hermano/a', dias: 1, fuente: 'LCT art. 158 inc. d', empresa: '' },
+      l5: { nombre: 'Examen (estudios medios o universitarios)', dias: 2, fuente: 'LCT art. 158 inc. e (máx. 10 días/año)', empresa: '' },
+      l6: { nombre: 'Donación de sangre', dias: 1, fuente: 'Ley 22.990 art. 47', empresa: '' },
+      l7: { nombre: 'Enfermedad o accidente inculpable', dias: 0, empresa: '', fuente: 'LCT art. 208 · con certificado médico (la duración paga depende de tu antigüedad y cargas de familia)' },
+      l8: { nombre: 'Accidente de trabajo (ART)', dias: 0, empresa: '', fuente: 'Ley 24.557 · avisá de inmediato y adjuntá el certificado' }
+    },
+    tiposPermiso: { p1: { nombre: 'Consulta o turno médico', emoji: '🩺' }, p2: { nombre: 'Estudios médicos', emoji: '🧪' }, p3: { nombre: 'Trámite personal', emoji: '📋' } },
+    firmantes: { f1: { nombre: 'GARCÍA, LAURA', cargo: 'JEFA DE RECURSOS HUMANOS', legajo: '010' }, f2: { nombre: 'ROMERO, ANA LUCÍA', cargo: 'ADMINISTRADORA TITULAR' }, f3: { nombre: 'MÉNDEZ, RAÚL', cargo: 'SOCIO GERENTE' } }
+  };
+  window.__VH_SEED__ = { datos, TEXTOS_DOC, por, E_A, E_V, E_P };
+
+  // ── Carga: si ya hay una demo guardada en este navegador se sigue con esa ──
+  D.db._cargar(() => {
+    let previo = null;
+    try { previo = JSON.parse(localStorage.getItem(D.LSK) || 'null'); } catch (e) { previo = null; }
+    const RUTA = 'vista';
+    if (previo && previo[RUTA] && previo[RUTA].portal && previo._dia === iso(hoy)) return previo;
+    return { _dia: iso(hoy), [RUTA]: { portal: datos } };
+  });
+})();
+
+
+</script>
+<script>
+'use strict';
+/* ══════════════ VISTA HUMANA · PANEL MAESTRO (5.0) ══════════════
+   Sólo para el dueño. Da de alta clientes (marca, empresas, módulos, plan, primer RR.HH.),
+   muestra cómo anda cada uno (sólo cantidades), atiende pedidos de ayuda, registra cobros
+   y abre el soporte, que queda anotado en el historial del cliente. */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBmQOJwifuOvurJqqZI0q2KKZSv0sGqwpg",
+  authDomain: "vista-humana.firebaseapp.com",
+  databaseURL: "https://vista-humana-default-rtdb.firebaseio.com",
+  projectId: "vista-humana",
+  storageBucket: "vista-humana.firebasestorage.app",
+  messagingSenderId: "203305321956",
+  appId: "1:203305321956:web:9c9023b305ea1a2a56b3f1"
+};
+const DUENO_MAIL = 'facundoavila306@gmail.com';
+const EMULADOR = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+firebase.initializeApp(EMULADOR ? Object.assign({}, FIREBASE_CONFIG, { databaseURL: 'http://127.0.0.1:9000/?ns=demo-vista-default-rtdb', projectId: 'demo-vista', apiKey: 'demo-key' }) : FIREBASE_CONFIG);
+const au = firebase.auth();
+if (EMULADOR) au.useEmulator('http://127.0.0.1:9099');
+const db = firebase.database();
+const TS = () => firebase.database.ServerValue.TIMESTAMP;
+const M = (p) => db.ref('vh/maestro/' + p);
+const CL = (cid, p) => db.ref('vh/c/' + cid + (p ? '/' + p : ''));
+let offset = 0; db.ref('.info/serverTimeOffset').on('value', (s) => { offset = s.val() || 0; });
+const ahora = () => Date.now() + offset;
+
+const $ = (i) => document.getElementById(i);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ini = (n) => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+const fd = (s) => s ? String(s).slice(0, 10).split('-').reverse().join('/') : '—';
+const hh = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const cuando = (t) => { if (!t) return '—'; const m = Math.round((ahora() - t) / 60000); if (m < 1) return 'recién'; if (m < 60) return 'hace ' + m + ' min'; const h = Math.round(m / 60); if (h < 24) return 'hace ' + h + ' h'; const d = Math.round(h / 24); return d === 1 ? 'ayer' : 'hace ' + d + ' días'; };
+const slug = (n) => (n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'cliente';
+const mailOk = (m) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m);
+const isoHoy = (off) => { const d = new Date(); d.setDate(d.getDate() + (off || 0)); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+async function sha256Hex(t) { const b = await crypto.subtle.digest('SHA-256', typeof t === 'string' ? new TextEncoder().encode(t) : t); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
+const azar = (n) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map((b) => b.toString(16).padStart(2, '0')).join(''); };
+function toast(t, ms) { const e = $('toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(e._t); e._t = setTimeout(() => e.style.display = 'none', ms || 3200); }
+const urlCliente = (cid, extra) => new URL('index.html?c=' + cid + (extra || ''), location.href).href;
+
+const MODS = [['fichaje', 'Fichaje con foto y ubicación'], ['presencia', 'Quién está trabajando'], ['recibos', 'Recibos y firma'], ['docs', 'Documentos y notificaciones'],
+  ['pedidos', 'Pedidos, licencias y vacaciones'], ['epp', 'EPP'], ['cursos', 'Cursos y carnets'], ['liquidacion', 'Liquidación (RR.HH.)']];
+const CONV = [['com', 'Comercio'], ['pet', 'Petroleros'], ['uoc', 'Construcción (UOCRA)'], ['cam', 'Camioneros'], ['san', 'Sanidad'], ['fdc', 'Fuera de convenio']];
+const EST = { ok: ['Activo', 'p-ok'], prueba: ['De prueba', 'p-prueba'], susp: ['Suspendido', 'p-susp'] };
+
+const S = { pub: {}, cli: {}, pag: {}, ayuda: {}, res: {}, sop: {}, refsRes: {} };
+let ed = null, vista = 1;
+
+/* ---------------- INGRESO DEL DUEÑO ---------------- */
+function pantallaIngreso() {
+  const qs = new URLSearchParams(location.search);
+  const nf = qs.get('nf');
+  $('app').classList.add('hide'); $('login').classList.remove('hide');
+  $('login').innerHTML = `<div class="lgbox">
+    <div class="top" style="border-radius:16px 16px 0 0"><i>VH</i>Vista Humana</div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+      ${nf ? `<div class="aviso a" style="margin:0">No encontramos la empresa <b>${esc(nf)}</b>. Revisá la dirección que te pasó RR.HH.</div>` : ''}
+      <div class="card" style="margin:0"><h3>¿Trabajás en una empresa que usa Vista?</h3><p>Entrá con la dirección que te pasó RR.HH., o escribí el código de tu empresa.</p>
+        <div class="f"><label class="w">Código de tu empresa<input id="lgCod" autocapitalize="none" placeholder="Ej: ferreteria-del-sur"></label></div>
+        <button class="btn" id="lgCodBtn" style="margin-top:10px;width:100%">Entrar</button></div>
+      <div class="card" style="margin:0"><h3>Panel maestro</h3><p>Solo para el dueño de Vista Humana. Te mandamos un enlace a tu mail.</p>
+        <div class="f"><label class="w">Tu mail<input id="lgMail" type="email" autocomplete="email" autocapitalize="none"></label></div>
+        <button class="btn" id="lgBtn" style="margin-top:10px;width:100%">Mandarme el enlace</button><p id="lgMsg" style="margin-top:8px"></p></div>
+    </div></div>`;
+  const irCod = () => { const c = slug($('lgCod').value); if (!$('lgCod').value.trim()) return; location.href = 'index.html?c=' + encodeURIComponent(c); };
+  $('lgCodBtn').onclick = irCod; $('lgCod').onkeydown = (e) => { if (e.key === 'Enter') irCod(); };
+  $('lgBtn').onclick = async () => {
+    const m = $('lgMail').value.trim().toLowerCase();
+    if (!mailOk(m)) { $('lgMsg').textContent = 'Revisá el mail.'; return; }
+    $('lgBtn').disabled = true; $('lgMsg').textContent = 'Enviando…';
+    try { au.languageCode = 'es'; await au.sendSignInLinkToEmail(m, { url: new URL('maestro.html?vhd=1', location.href).href, handleCodeInApp: true }); localStorage.setItem('vh_maestro_mail', m); $('lgMsg').innerHTML = '📧 Listo. Abrí el mail <b>en este mismo navegador</b> y tocá el enlace (mirá en Spam si no aparece).'; }
+    catch (e) { $('lgBtn').disabled = false; $('lgMsg').textContent = '⚠️ No se pudo mandar (' + (e.code || e.message) + ').'; }
+  };
+}
+const esDueno = (u) => !!(u && u.emailVerified && String(u.email || '').toLowerCase() === DUENO_MAIL);
+(async function arranque() {
+  if (au.isSignInWithEmailLink(location.href)) {
+    let m = localStorage.getItem('vh_maestro_mail') || '';
+    if (!m) m = (prompt('Para terminar de entrar, escribí tu mail:') || '').trim().toLowerCase();
+    try { await au.signInWithEmailLink(m, location.href); localStorage.removeItem('vh_maestro_mail'); } catch (e) { toast('El enlace venció o ya se usó. Pedí uno nuevo.', 6000); }
+    history.replaceState(null, '', location.pathname);
+  }
+  au.onAuthStateChanged((u) => {
+    if (esDueno(u)) { $('login').classList.add('hide'); $('app').classList.remove('hide'); escuchar(); }
+    else { if (u) au.signOut(); pantallaIngreso(); }
+  });
+})();
+$('btnSalirM').onclick = () => au.signOut();
+
+/* ---------------- DATOS ---------------- */
+let escuchando = false;
+function escuchar() {
+  if (escuchando) return; escuchando = true;
+  const pinta = () => { clearTimeout(pinta.t); pinta.t = setTimeout(() => { if (!$('vEd').classList.contains('hide') && ed && ed.id) { reporte(); } else lista(); }, 120); };
+  M('publico').on('value', (s) => { S.pub = s.val() || {}; Object.keys(S.pub).forEach(escucharRes); autoSuspender(); pinta(); });
+  M('clientes').on('value', (s) => { S.cli = s.val() || {}; pinta(); });
+  M('pagos').on('value', (s) => { S.pag = s.val() || {}; pinta(); if (ed && ed.id) pagos(); });
+  M('ayuda').on('value', (s) => { S.ayuda = s.val() || {}; pinta(); });
+  M('soporte').on('value', (s) => { S.sop = s.val() || {}; pinta(); });
+}
+function escucharRes(cid) {
+  if (S.refsRes[cid]) return;
+  S.refsRes[cid] = CL(cid, 'resumen');
+  S.refsRes[cid].on('value', (s) => { S.res[cid] = s.val() || {}; if (!$('vEd').classList.contains('hide') && ed && ed.id === cid) reporte(); else lista(); }, () => { });
+}
+const lista_ = () => Object.entries(S.pub).map(([id, p]) => Object.assign({ id }, p, { priv: S.cli[id] || {} })).sort((a, b) => (b.muestra ? -1 : 0) - (a.muestra ? -1 : 0) || String(a.nom).localeCompare(String(b.nom)));
+
+/* ---------------- AVISOS DE CADA CLIENTE ---------------- */
+function avisosDe(c) {
+  const r = S.res[c.id] || {}, out = [];
+  if (c.est === 'susp') out.push(['r', 'Suspendido' + ((c.priv || {}).suspAuto ? ' solo por falta de pago (' + fd(new Date(c.priv.suspAuto).toISOString()) + ')' : '') + '. Su gente no puede entrar.']);
+  if (c.vto && c.est !== 'susp') {
+    const dias = Math.ceil((new Date(c.vto + 'T23:59:59') - new Date()) / 864e5);
+    if (dias < 0) out.push(['r', (c.est === 'prueba' ? 'La prueba venció' : 'El abono venció') + ' el ' + fd(c.vto) + ' y no registraste el pago.']);
+    else if (dias <= 10) out.push(['a', (c.est === 'prueba' ? 'La prueba vence' : 'El abono vence') + ' el ' + fd(c.vto) + ' (' + dias + ' días).']);
+  }
+  if (!r.rrhhUlt) out.push(['a', 'Su RR.HH. todavía no entró al panel.']);
+  else if (ahora() - r.rrhhUlt > 5 * 864e5) out.push(['a', 'RR.HH. no entra ' + cuando(r.rrhhUlt) + '.']);
+  const faltan = (r.sinRegistrar || 0) + (r.esperando || 0);
+  if (faltan) out.push(['a', faltan + ' de ' + (r.cargadas || 0) + ' personas todavía no se registraron.']);
+  if (c.tope && r.cargadas && r.cargadas / c.tope >= 0.9) out.push(['a', 'Tope de empleados al ' + Math.round(r.cargadas / c.tope * 100) + ' % (' + r.cargadas + ' de ' + c.tope + ').']);
+  return out;
+}
+async function autoSuspender() {
+  for (const c of lista_()) {
+    const pr = c.priv || {};
+    if (c.muestra || c.est === 'susp' || pr.auto === false || !c.vto) continue;
+    const gracia = Number(pr.gracia == null ? 10 : pr.gracia);
+    if (new Date() > new Date(new Date(c.vto + 'T23:59:59').getTime() + gracia * 864e5)) {
+      await db.ref('vh/maestro').update({ ['publico/' + c.id + '/est']: 'susp', ['clientes/' + c.id + '/suspAuto']: Date.now() });
+      toast('Suspendí a ' + c.nom + ': pasaron ' + gracia + ' días del vencimiento sin pago registrado.', 6000);
+    }
+  }
+}
+
+/* ---------------- LISTA ---------------- */
+function logoHtml(c) { return c.logo ? `<img src="${c.logo}">` : esc(ini(c.nom)); }
+function lista() {
+  const L = lista_();
+  const reales = L.filter((c) => !c.muestra);
+  const emp = reales.reduce((a, c) => a + ((S.res[c.id] || {}).cargadas || 0), 0);
+  $('kpis').innerHTML = `<div class="kpi"><b>${reales.length}</b><span>clientes</span></div><div class="kpi"><b>${reales.filter((c) => c.est === 'ok').length}</b><span>activos</span></div><div class="kpi"><b>${reales.filter((c) => c.est === 'prueba').length}</b><span>de prueba</span></div><div class="kpi"><b>${emp}</b><span>empleados en total</span></div>`;
+  const urg = L.flatMap((c) => avisosDe(c).filter((a) => a[0] === 'r').map((a) => [a[0], '<b>' + esc(c.nom) + ':</b> ' + esc(a[1])]));
+  $('avGen').classList.toggle('hide', !urg.length);
+  $('avGen').innerHTML = '<h3>Urgente</h3>' + urg.map((a) => `<div class="aviso ${a[0]}">${a[1]}</div>`).join('') + '<p style="margin-top:8px">El resto de los avisos está en cada cliente.</p>';
+  const ay = Object.entries(S.ayuda).map(([id, a]) => Object.assign({ id }, a)).filter((a) => a.estado !== 'resuelto').sort((a, b) => a.ts - b.ts);
+  $('ayuda').innerHTML = `<h3>Pedidos de ayuda ${ay.length ? '<span class="pill p-susp">' + ay.length + '</span>' : ''}</h3>` + (ay.length ? ay.map((a) => {
+    const c = Object.assign({ id: a.c }, S.pub[a.c] || { nom: a.cliente || a.c, c1: '#999' });
+    return `<div class="aviso ${a.estado === 'nuevo' ? 'a' : 'v'}" style="align-items:center"><div class="logo" style="background:${esc(c.c1)};width:34px;height:34px;font-size:12px">${logoHtml(c)}</div><div style="flex:1"><b>${esc(c.nom)}</b> · ${esc(a.quien || 'RR.HH.')} · <span style="opacity:.8">${cuando(a.ts)}</span><br>“${esc(a.que)}”${a.estado === 'atendiendo' ? '<br><b>Ya entraste como soporte.</b>' : ''}</div>${a.estado === 'atendiendo' ? `<button class="btn sm" data-res="${esc(a.id)}">Marcar resuelto</button>` : `<button class="btn sm" data-at="${esc(a.id)}">Atender</button>`}</div>`;
+  }).join('') : '<div class="aviso v">No hay pedidos pendientes.</div>') + '<p style="margin-top:8px">Su RR.HH. lo pide con el botón <b>"Pedir ayuda"</b> de su panel.</p>';
+  $('ayuda').querySelectorAll('[data-at]').forEach((b) => { b.onclick = () => atender(b.dataset.at); });
+  $('ayuda').querySelectorAll('[data-res]').forEach((b) => { b.onclick = () => M('ayuda/' + b.dataset.res).update({ estado: 'resuelto', resueltoTs: TS() }).then(() => toast('Resuelto · le aparece a su RR.HH.')); });
+  $('grid').innerHTML = L.length ? L.map((c) => {
+    const r = S.res[c.id] || {}, av = avisosDe(c), n = av.length, sop = S.sop[c.id] && S.sop[c.id].hasta > ahora();
+    return `<div class="cli" data-cli="${esc(c.id)}"><div class="h"><div class="logo" style="background:${esc(c.c1)}">${logoHtml(c)}</div><div><div class="n">${esc(c.nom)} ${c.muestra ? '<span class="pill p-prueba">MUESTRA</span>' : ''}</div><div class="s">${(c.empresas || []).length} empresa${(c.empresas || []).length === 1 ? '' : 's'} · RR.HH.: ${esc((c.priv || {}).admN || '—')}</div></div></div>
+    <div><span class="pill ${EST[c.est || 'ok'][1]}">${EST[c.est || 'ok'][0]}</span> <span class="s">${c.vto ? (c.est === 'prueba' ? 'vence ' : c.est === 'susp' ? '' : 'abono hasta ') + fd(c.vto) : 'sin vencimiento'}</span>${sop ? ' <span class="pill" style="background:#7a5000;color:#fff">soporte abierto</span>' : ''}</div>
+    <div><div class="s" style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Empleados</span><span>${r.cargadas || 0}${c.tope ? ' de ' + c.tope : ''}</span></div><div class="uso"><i style="width:${c.tope ? Math.min(100, (r.cargadas || 0) / c.tope * 100) : 0}%"></i></div></div>
+    ${n ? `<div class="aviso ${av.some((a) => a[0] === 'r') ? 'r' : 'a'}" style="margin:0;padding:7px 10px">${n} para mirar · ${esc(av[0][1])}</div>` : '<div class="aviso v" style="margin:0;padding:7px 10px">Todo en orden</div>'}
+    <div class="chips">${MODS.filter(([k]) => (c.mods || {})[k] !== false).map(([, t]) => `<span class="chip">${esc(t.split(/[ ,(]/)[0])}</span>`).join('')}</div></div>`;
+  }).join('') : '<div class="card"><h3>Todavía no tenés clientes</h3><p>Tocá <b>+ Nuevo cliente</b>, o <b>Armar cliente de muestra</b> para tener uno inventado y mostrarlo.</p></div>';
+  $('grid').querySelectorAll('[data-cli]').forEach((x) => { x.onclick = () => abrir(x.dataset.cli); });
+  const kb = L.reduce((a, c) => a + ((S.res[c.id] || {}).usoKB || 0), 0), mb = Math.round(kb / 1024), pct = Math.min(100, Math.round(mb / 10.24));
+  $('usoBase').innerHTML = `<h3>Tu Firebase</h3><p>Usás aprox. <b>${mb} MB</b> de 1 GB del plan gratis (${pct} %). Lo que más pesa son las fotos de los fichajes y los PDF.</p><div class="uso" style="margin-top:8px;height:10px"><i style="width:${pct}%;${pct > 80 ? 'background:#8C1D1D' : ''}"></i></div><p style="margin-top:6px">${pct > 80 ? '<b>Pasaste el 80 %: conviene pasar al plan pago.</b> ' : ''}Es una cuenta aproximada que hace cada cliente cuando su RR.HH. entra. El número exacto está en la consola de Firebase, en Realtime Database → Uso.</p>`;
+}
+
+/* ---------------- FICHA ---------------- */
+function abrir(cid) {
+  const p = cid ? S.pub[cid] : null, pr = cid ? (S.cli[cid] || {}) : {};
+  ed = p ? JSON.parse(JSON.stringify(Object.assign({ id: cid }, p))) : { id: '', nom: '', ciudad: '', c1: '#171531', c2: '#DF4324', est: 'prueba', tope: 30, vto: isoHoy(30), logo: '', mods: {}, empresas: [{ n: '', cuit: '', conv: 'com', dir: '', loc: '' }] };
+  ed.priv = JSON.parse(JSON.stringify(pr)); ed.empresas = (ed.empresas || []).length ? ed.empresas : [{ n: '', cuit: '', conv: 'com' }];
+  ed._admOrig = (pr.admDni || '') + '|' + (pr.admM || '');
+  $('edTit').textContent = cid ? ed.nom : 'Nuevo cliente';
+  ['btnSoporte'].forEach((b) => $(b).classList.toggle('hide', !cid));
+  $('fNom').value = ed.nom || ''; $('fCiu').value = ed.ciudad || ''; $('fC1').value = ed.c1; $('fC2').value = ed.c2; $('fEst').value = ed.est || 'ok';
+  $('fTope').value = ed.tope || ''; $('fVto').value = ed.vto || ''; $('fPrecio').value = pr.precio || ''; $('pgGr').value = pr.gracia == null ? 10 : pr.gracia; $('pgAuto').checked = pr.auto !== false;
+  $('fAdmN').value = pr.admN || ''; $('fAdmD').value = pr.admDni || ''; $('fAdmM').value = pr.admM || '';
+  $('mods').innerHTML = MODS.map(([k, t]) => `<label class="mod"><input type="checkbox" data-m="${k}" ${(ed.mods || {})[k] !== false ? 'checked' : ''}> ${t}</label>`).join('');
+  emp(); pagos(); prev(); if (cid) reporte(); tab(cid ? 'rep' : 'fic'); sec('marca');
+  $('edTabs').classList.toggle('hide', !cid);
+  $('vLista').classList.add('hide'); $('vEd').classList.remove('hide'); scrollTo(0, 0);
+}
+function emp() {
+  $('tEmp').innerHTML = '<tr><th>Razón social</th><th>CUIT</th><th>Convenio</th><th>Domicilio</th><th>Localidad</th><th></th></tr>' + ed.empresas.map((e, i) => `<tr>
+    <td><input value="${esc(e.n)}" data-e="${i}" data-k="n" placeholder="Ej: Ferretería del Sur SRL" style="min-width:200px"></td>
+    <td><input value="${esc(e.cuit || '')}" data-e="${i}" data-k="cuit" placeholder="30-..." style="width:140px"></td>
+    <td><select data-e="${i}" data-k="conv">${CONV.map(([k, t]) => `<option value="${k}" ${k === (e.conv || 'com') ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+    <td><input value="${esc(e.dir || '')}" data-e="${i}" data-k="dir" style="width:160px"></td>
+    <td><input value="${esc(e.loc || '')}" data-e="${i}" data-k="loc" style="width:120px"></td>
+    <td>${ed.empresas.length > 1 ? `<button class="btn sec sm" data-quitar="${i}">Quitar</button>` : ''}</td></tr>`).join('');
+  $('tEmp').querySelectorAll('[data-e]').forEach((x) => { x.oninput = x.onchange = () => { ed.empresas[x.dataset.e][x.dataset.k] = x.value; }; });
+  $('tEmp').querySelectorAll('[data-quitar]').forEach((b) => { b.onclick = () => { ed.empresas.splice(+b.dataset.quitar, 1); emp(); }; });
+}
+$('agEmp').onclick = () => { ed.empresas.push({ n: '', cuit: '', conv: 'com', dir: '', loc: '' }); emp(); };
+$('fLogo').onchange = () => {
+  const f = $('fLogo').files[0]; if (!f) return;
+  const img = new Image(), rd = new FileReader();
+  rd.onload = () => { img.onload = () => { const max = 360, k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ed.logo = c.toDataURL('image/png'); if (ed.logo.length > 180000) ed.logo = c.toDataURL('image/jpeg', 0.85); prev(); }; img.src = rd.result; };
+  rd.readAsDataURL(f);
+};
+$('fSinLogo').onclick = () => { ed.logo = ''; $('fLogo').value = ''; prev(); };
+['fNom', 'fC1', 'fC2'].forEach((i) => { $(i).oninput = prev; });
+$('fEst').onchange = () => {
+  const v = $('fEst').value;
+  if (v === 'susp' && ed.est !== 'susp') confirmar('¿Suspender a ' + esc(ed.nom || 'este cliente') + '?', 'Su gente no va a poder entrar hasta que lo vuelvas a activar. Los datos no se borran. Se aplica al tocar Guardar.', 'Suspender', () => prev(), () => { $('fEst').value = ed.est || 'ok'; });
+  prev();
+};
+function prev() {
+  ed.nom = $('fNom').value; ed.c1 = $('fC1').value; ed.c2 = $('fC2').value;
+  $('boxSusp').classList.toggle('hide', $('fEst').value !== 'susp');
+  $('fLink').textContent = urlCliente(ed.id || slug(ed.nom));
+  $('fCod').textContent = ed.id || slug(ed.nom) || '—';
+  const sello = '<span class="pw"><i class="vh">VH</i>con Vista Humana</span>';
+  if (vista === 1) {
+    $('ph').style.background = `linear-gradient(160deg,${ed.c1},#0F0E22)`;
+    $('ph').innerHTML = `<div class="lc"><div class="lg" style="background:${ed.logo ? '#fff' : ed.c1}">${logoHtml(ed)}</div><div class="nm">${esc(ed.nom || 'Nombre del cliente')}</div><div class="sb">Portal del empleado</div>
+      ${$('fEst').value === 'susp' ? '<div class="aviso a" style="text-align:center">Servicio pausado. Consultá con RR.HH.</div>' : `<div class="in">DNI (sin puntos)</div><div class="in">Clave</div><div class="bt" style="background:${ed.c2}">Ingresar</div><div style="text-align:center;font-size:12px;color:${ed.c2};font-weight:700">Es mi primera vez: registrarme</div>`}${sello}</div>`;
+  } else {
+    const hd = `<div class="hdr" style="background:${ed.c1}"><div class="lg">${logoHtml(ed)}</div><div style="font-size:12px;line-height:1.3"><b>${vista === 3 ? 'Administración' : 'Hola, Lucía'}</b><br><span style="opacity:.8">${esc(ed.nom || 'Cliente')}</span></div></div>`;
+    const cuerpo = vista === 2 ? `<div class="it" style="background:${ed.c1};color:#fff;font-weight:800">Marcar entrada</div><div class="it">Firmar recibo de Septiembre</div><div class="it">Leer: Protocolo ante accidentes</div><div class="it">Mi semana</div>`
+      : `<div class="it"><b>Personas que pueden registrarse</b></div><div class="it">+ Agregar persona · Cargar desde Excel</div><div class="it">Pedidos</div><div class="it">Pedir ayuda a Vista Humana</div>`;
+    $('ph').style.background = '#1b1a2e';
+    $('ph').innerHTML = `<div class="app">${hd}<div class="bd">${cuerpo}</div><div style="padding:8px;border-top:1px solid var(--line);background:#fff">${sello}</div></div>`;
+  }
+}
+function vp(n) { vista = n; [1, 2, 3].forEach((k) => $('pv' + k).classList.toggle('on', k === n)); $('phCap').textContent = ['', 'Así ve el ingreso su gente', 'Así se ve adentro, en el celular', 'Así ve el panel su RR.HH.'][n]; prev(); }
+[1, 2, 3].forEach((n) => { $('pv' + n).onclick = () => vp(n); });
+function tab(t) { $('vRep').classList.toggle('hide', t !== 'rep'); $('vFic').classList.toggle('hide', t !== 'fic'); $('tbRep').classList.toggle('on', t === 'rep'); $('tbFic').classList.toggle('on', t === 'fic'); }
+$('tbRep').onclick = () => tab('rep'); $('tbFic').onclick = () => tab('fic');
+function sec(k) { document.querySelectorAll('[data-sec]').forEach((c) => c.classList.toggle('hide', c.dataset.sec !== k)); document.querySelectorAll('#secs button').forEach((b) => b.classList.toggle('on', b.dataset.s === k)); document.querySelector('.prev').classList.toggle('hide', k !== 'marca'); $('edGrid').classList.toggle('solo', k !== 'marca'); }
+document.querySelectorAll('#secs button').forEach((b) => { b.onclick = () => sec(b.dataset.s); });
+function volver() { $('vEd').classList.add('hide'); $('vLista').classList.remove('hide'); ed = null; lista(); }
+$('btnVolver').onclick = volver;
+
+function confirmar(tit, txt, boton, fn, cancelar) {
+  $('ovl').innerHTML = `<div class="ov"><div class="mdl"><h3>${tit}</h3><p>${txt}</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="cfNo">Cancelar</button><button class="btn" style="background:#8C1D1D" id="cfOk">${boton}</button></div></div></div>`;
+  $('cfNo').onclick = () => { $('ovl').innerHTML = ''; if (cancelar) cancelar(); };
+  $('cfOk').onclick = () => { $('ovl').innerHTML = ''; fn(); };
+}
+
+/* Un cambio en los datos del cliente siempre pasa por un soporte corto que queda en su historial */
+async function conSoporte(cid, motivo, modo, min, fn) {
+  const log = M('soporteLog/' + cid).push().key;
+  await M('soporte/' + cid).set({ hasta: ahora() + min * 60000, modo, motivo, desde: ahora(), log });
+  await M('soporteLog/' + cid + '/' + log).set({ motivo, modo, desde: TS(), auto: true });
+  const aud = (accion, detalle) => CL(cid, 'auditoria').push({ ts: TS(), quien: 'soporte', quienNombre: 'Soporte · Vista Humana', accion, detalle, soporte: true });
+  await aud('Soporte entró', (modo === 'cambiar' ? 'Mirar y arreglar' : 'Solo mirar') + ' · motivo: ' + motivo);
+  try { return await fn(); }
+  finally {
+    try { await aud('Soporte salió', motivo); } catch (e) { }
+    try { await M('soporte/' + cid).remove(); await M('soporteLog/' + cid + '/' + log).update({ fin: TS() }); } catch (e) { }
+  }
+}
+async function guardar() {
+  const nom = $('fNom').value.trim(), admN = $('fAdmN').value.trim(), admDni = $('fAdmD').value.replace(/\D/g, ''), admM = $('fAdmM').value.trim().toLowerCase();
+  const empresas = ed.empresas.map((e) => ({ n: String(e.n || '').trim(), corto: String(e.corto || '').trim(), cuit: String(e.cuit || '').trim(), conv: e.conv || 'com', dir: String(e.dir || '').trim(), loc: String(e.loc || '').trim() })).filter((e) => e.n);
+  if (!nom) { sec('marca'); return toast('Falta el nombre del cliente'); }
+  if (!empresas.length) { sec('emp'); return toast('Cargá al menos una empresa (razón social)'); }
+  if (!ed.muestra && (!admN || admDni.length < 7 || !mailOk(admM))) { sec('rrhh'); return toast('Completá nombre, DNI y mail del administrador de RR.HH.'); }
+  const nuevo = !ed.id;
+  let id = ed.id;
+  if (nuevo) { id = slug(nom); let k = 2; while (S.pub[id]) id = slug(nom).slice(0, 27) + '-' + (k++); }
+  const pub = { nom, ciudad: $('fCiu').value.trim(), c1: $('fC1').value, c2: $('fC2').value, logo: ed.logo || '', est: $('fEst').value, tope: Number($('fTope').value) || 0, vto: $('fVto').value || '',
+    mods: Object.fromEntries([...document.querySelectorAll('[data-m]')].map((x) => [x.dataset.m, x.checked])), empresas, muestra: !!ed.muestra, ts: TS() };
+  const priv = Object.assign({}, ed.priv, { precio: $('fPrecio').value.trim(), gracia: Number($('pgGr').value) || 0, auto: $('pgAuto').checked, admN, admDni, admM });
+  if (pub.est !== 'susp') priv.suspAuto = null;
+  if (nuevo) priv.creado = Date.now();
+  $('btnGuardar').disabled = true;
+  try {
+    await db.ref('vh/maestro').update({ ['publico/' + id]: pub, ['clientes/' + id]: priv });
+    if (!ed.muestra && (nuevo || ed._admOrig !== admDni + '|' + admM)) {
+      await conSoporte(id, nuevo ? 'Alta del cliente y de su primer administrador de RR.HH.' : 'Cambio del administrador de RR.HH.', 'cambiar', 3, async () => {
+        const u = (await CL(id, 'usuarios/' + admDni).get()).val();
+        const ups = { ['padron/' + admDni]: { mail: admM, nombre: admN.toUpperCase(), activo: true, ts: Date.now() } };
+        if (u) ups['usuarios/' + admDni + '/esAdmin'] = true;
+        else { const salt = azar(16); ups['usuarios/' + admDni] = { nombre: admN.toUpperCase(), dni: admDni, legajo: '', empresa: empresas[0].n, salt, pinHash: await sha256Hex(admDni + ':' + admDni.slice(-4) + ':' + salt), activo: true, esAdmin: true, creado: Date.now(), origen: 'maestro' }; }
+        await CL(id).update(ups);
+      });
+    }
+    toast(nuevo ? 'Cliente creado. Pasale la dirección a ' + admN + ' (en "RR.HH. y dirección").' : 'Guardado', 6000);
+    $('btnGuardar').disabled = false;
+    if (nuevo) { abrir(id); tab('fic'); sec('rrhh'); } else { $('edTit').textContent = nom; ed._admOrig = admDni + '|' + admM; }
+  } catch (e) { console.warn(e); $('btnGuardar').disabled = false; toast('⚠️ No se pudo guardar (' + (e.code || e.message) + ')', 6000); }
+}
+$('btnGuardar').onclick = guardar;
+$('btnCopiar').onclick = () => { navigator.clipboard && navigator.clipboard.writeText($('fLink').textContent).then(() => toast('Dirección copiada'), () => toast('Copiala a mano')); };
+
+/* ---------------- COBROS ---------------- */
+function pagos() {
+  if (!ed) return;
+  const L = Object.entries(S.pag[ed.id] || {}).map(([k, x]) => Object.assign({ k }, x)).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+  $('tPag').innerHTML = '<tr><th>Fecha</th><th>Paga hasta</th><th>Monto</th><th>Medio</th></tr>' + (L.length ? L.map((x) => `<tr><td>${fd(x.fecha)}</td><td>${fd(x.hasta)}</td><td>${esc(x.monto)}</td><td>${esc(x.medio)}</td></tr>`).join('') : '<tr><td colspan="4" style="color:var(--mut)">Todavía no registraste pagos.</td></tr>');
+}
+$('btnPago').onclick = async () => {
+  if (!ed || !ed.id) return toast('Primero guardá el cliente');
+  const f = $('pgF').value, m = $('pgM').value.trim(), mes = $('pgP').value;
+  if (!f || !m || !mes) return toast('Poné la fecha, el monto y el mes que paga');
+  const [y, mm] = mes.split('-').map(Number); const fin = new Date(y, mm, 0); const hasta = fin.getFullYear() + '-' + String(fin.getMonth() + 1).padStart(2, '0') + '-' + String(fin.getDate()).padStart(2, '0');
+  const ups = { ['pagos/' + ed.id + '/' + M('pagos').push().key]: { fecha: f, hasta, monto: m.startsWith('$') ? m : '$ ' + m, medio: $('pgMe').value, ts: TS() } };
+  const cur = S.pub[ed.id] || {};
+  if (!cur.vto || hasta > cur.vto) { ups['publico/' + ed.id + '/vto'] = hasta; $('fVto').value = hasta; }
+  if (cur.est !== 'ok' && !cur.muestra) { ups['publico/' + ed.id + '/est'] = 'ok'; ups['clientes/' + ed.id + '/suspAuto'] = null; $('fEst').value = 'ok'; }
+  await db.ref('vh/maestro').update(ups);
+  ['pgF', 'pgM', 'pgP'].forEach((i) => { $(i).value = ''; });
+  toast('Pago registrado · abono hasta ' + fd(hasta) + (cur.est !== 'ok' ? ' · el cliente quedó Activo' : ''), 5000);
+};
+
+/* ---------------- CÓMO ANDA ---------------- */
+function reporte() {
+  if (!ed || !ed.id) return;
+  const c = Object.assign({ id: ed.id }, S.pub[ed.id] || {}, { priv: S.cli[ed.id] || {} }), r = S.res[ed.id] || {}, av = avisosDe(c);
+  const D = []; for (let i = 6; i >= 0; i--) D.push(isoHoy(-i));
+  const sem = D.map((d) => Number((r.fich || {})[d] || 0)), mx = Math.max(1, ...sem), DN = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  $('vRep').innerHTML = `<div class="k4"><div class="kpi"><b>${r.registradas || 0} / ${r.cargadas || 0}</b><span>personas registradas / cargadas</span></div><div class="kpi"><b>${sem[6]}</b><span>ficharon entrada hoy</span></div><div class="kpi"><b>${r.recibosPct == null ? '—' : r.recibosPct + ' %'}</b><span>recibos firmados (último mes)</span></div><div class="kpi"><b style="font-size:16px">${r.rrhhUlt ? cuando(r.rrhhUlt) : 'nunca'}</b><span>último ingreso de su RR.HH.${r.rrhhQuien ? ' (' + esc(r.rrhhQuien) + ')' : ''}</span></div></div>
+  <div class="ed" style="margin-top:12px"><div>
+   <div class="card"><h3>Avisos</h3>${av.map((x) => `<div class="aviso ${x[0]}">${esc(x[1])}</div>`).join('') || '<div class="aviso v">Todo en orden.</div>'}</div>
+   <div class="card"><h3>Lo último que hizo su RR.HH.</h3><div class="feed">${(r.feed || []).length ? r.feed.map((f) => `<div><span>${new Date(f.ts).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${hh(f.ts)}</span>${esc(f.q ? f.q + ': ' : '')}${esc(f.a)}</div>`).join('') : '<div>Todavía no hay movimientos.</div>'}</div><p style="margin-top:6px">Se actualiza cada vez que su RR.HH. entra al panel${r.ts ? ' (última: ' + cuando(r.ts) + ')' : ''}.</p></div>
+  </div><div>
+   <div class="card"><h3>Entradas fichadas por día</h3><div class="barras">${sem.map((v) => `<div style="height:${Math.max(3, v / mx * 80)}px"><b>${v}</b></div>`).join('')}</div><div class="dias">${D.map((d) => `<span>${DN[new Date(d + 'T12:00:00').getDay()]}</span>`).join('')}</div></div>
+   <div class="card"><h3>Datos</h3><p>Ocupa aprox. <b>${Math.max(1, Math.round((r.usoKB || 0) / 1024))} MB</b> en tu Firebase.</p><button class="btn sec sm" style="margin-top:8px" id="btnDesc">Descargar todos sus datos</button>${c.muestra ? '<button class="btn sec sm" style="margin:8px 0 0 6px" id="btnBorrarM">Borrar la muestra</button>' : ''}<p style="margin-top:6px">La descarga queda anotada en su historial.</p></div>
+   <div class="card"><h3>Su gente</h3><p>${r.registradas || 0} registradas · ${r.esperando || 0} esperando el mail · ${r.sinRegistrar || 0} sin registrar.</p><p style="margin-top:6px">Acá ves solo cantidades. Para ver nombres o arreglar algo, usá <b>Entrar como soporte</b> (queda en su historial).</p></div>
+  </div></div>`;
+  $('btnDesc').onclick = () => descargar(ed.id);
+  if ($('btnBorrarM')) $('btnBorrarM').onclick = () => confirmar('¿Borrar la muestra?', 'Se borran el cliente de muestra y todos sus datos inventados. No toca a ningún cliente real.', 'Borrar', () => borrarCliente(ed.id));
+}
+
+/* ---------------- SOPORTE ---------------- */
+let SOPF = { modo: 'mirar', ayuda: null };
+function sopPedir(motivo, ayudaId) {
+  SOPF = { modo: 'mirar', ayuda: ayudaId || null };
+  $('ovl').innerHTML = `<div class="ov"><div class="mdl"><h3>Entrar como soporte</h3><p>Vas a entrar al panel de RR.HH. de <b>${esc(ed.nom)}</b> en otra pestaña. Todo lo que mires o cambies queda en su historial, con el motivo.</p>
+    <label>¿Por qué entrás? (lo ve el cliente)<input id="sMot" value="${esc(motivo || '')}" placeholder="Ej: Gabriela pidió ayuda: un empleado no puede confirmar el celular"></label>
+    <div class="opt on" data-mo="mirar"><input type="radio" name="mo" checked><div><b>Solo mirar</b><br><span style="color:var(--mut)">Ves todo como ellos, pero no se guarda ningún cambio.</span></div></div>
+    <div class="opt" data-mo="cambiar"><input type="radio" name="mo"><div><b>Mirar y arreglar</b><br><span style="color:var(--mut)">Podés corregir datos. Cada cambio queda anotado con lo que había antes y lo que pusiste.</span></div></div>
+    <label>Tiempo<select id="sMin"><option value="30">30 minutos</option><option value="60">1 hora</option><option value="15">15 minutos</option></select></label>
+    <div class="aviso i" style="margin:0;background:#EEF1FB;color:#2B3A8C">Cuando se termina el tiempo salís solo. Su RR.HH. ve un aviso con el horario, el motivo y los cambios.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="sNo">Cancelar</button><button class="btn" id="sOk">Entrar</button></div></div></div>`;
+  document.querySelectorAll('[data-mo]').forEach((x) => { x.onclick = () => { SOPF.modo = x.dataset.mo; document.querySelectorAll('[data-mo]').forEach((y) => { y.classList.toggle('on', y === x); y.querySelector('input').checked = y === x; }); }; });
+  $('sNo').onclick = () => { $('ovl').innerHTML = ''; };
+  $('sOk').onclick = async () => {
+    const mot = $('sMot').value.trim(); if (mot.length < 6) { $('sMot').style.borderColor = '#DF4324'; return toast('Escribí el motivo: lo ve el cliente'); }
+    const w = window.open('about:blank', '_blank');
+    const log = M('soporteLog/' + ed.id).push().key, min = +$('sMin').value;
+    try {
+      await M('soporte/' + ed.id).set({ hasta: ahora() + min * 60000, modo: SOPF.modo, motivo: mot, desde: ahora(), log });
+      await M('soporteLog/' + ed.id + '/' + log).set({ motivo: mot, modo: SOPF.modo, desde: TS(), min });
+      if (SOPF.ayuda) await M('ayuda/' + SOPF.ayuda).update({ estado: 'atendiendo', atendidoTs: TS() });
+      $('ovl').innerHTML = '';
+      const url = urlCliente(ed.id, '&soporte=1');
+      if (w) w.location.href = url; else location.href = url;
+    } catch (e) { if (w) w.close(); toast('⚠️ No se pudo abrir el soporte (' + (e.code || e.message) + ')'); }
+  };
+  setTimeout(() => $('sMot').focus(), 50);
+}
+$('btnSoporte').onclick = () => sopPedir('');
+function atender(id) { const a = S.ayuda[id]; if (!a || !S.pub[a.c]) return toast('Ese cliente ya no existe'); abrir(a.c); sopPedir((a.quien || 'RR.HH.') + ' pidió ayuda: ' + a.que, id); }
+
+/* ---------------- DESCARGAR DATOS ---------------- */
+function bajar(nombre, blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+function cargarXlsx() { if (window.XLSX) return Promise.resolve(window.XLSX); return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = () => ok(window.XLSX); s.onerror = () => mal(new Error('sin conexión')); document.head.appendChild(s); }); }
+async function descargar(cid) {
+  toast('Preparando la descarga…', 8000);
+  try {
+    const todo = await conSoporte(cid, 'Descarga de todos sus datos (pedido del dueño)', 'mirar', 3, async () => (await CL(cid).get()).val() || {});
+    const dia = isoHoy(0);
+    bajar('VistaHumana_' + cid + '_' + dia + '.json', new Blob([JSON.stringify(todo, null, 1)], { type: 'application/json' }));
+    try {
+      const X = await cargarXlsx(), wb = X.utils.book_new();
+      const pad = todo.padron || {};
+      const pers = Object.entries(todo.usuarios || {}).map(([dni, u]) => ({ DNI: dni, Nombre: u.nombre || '', Legajo: u.legajo || '', Empresa: u.empresa || '', Mail: (pad[dni] || {}).mail || '', Activo: u.activo === false ? 'No' : 'Sí', Administrador: u.esAdmin ? 'Sí' : '', Encargado: u.esSupervisor ? 'Sí' : '' }));
+      X.utils.book_append_sheet(wb, X.utils.json_to_sheet(pers), 'Personas');
+      const fich = []; Object.entries(todo.fichadas || {}).forEach(([dni, l]) => Object.values(l || {}).forEach((m) => fich.push({ DNI: dni, Nombre: m.nombre || '', Tipo: m.tipo || '', Fecha: m.ts ? new Date(m.ts).toLocaleString('es-AR') : '' })));
+      X.utils.book_append_sheet(wb, X.utils.json_to_sheet(fich), 'Fichajes');
+      const sol = Object.values(todo.solicitudes || {}).map((x) => ({ DNI: x.dni, Tipo: x.tipo, Estado: x.estado, Fecha: x.ts ? new Date(x.ts).toLocaleString('es-AR') : '' }));
+      X.utils.book_append_sheet(wb, X.utils.json_to_sheet(sol), 'Pedidos');
+      bajar('VistaHumana_' + cid + '_' + dia + '.xlsx', new Blob([X.write(wb, { type: 'array', bookType: 'xlsx' })], { type: 'application/octet-stream' }));
+    } catch (e) { console.warn(e); }
+    toast('Listo: se bajaron el respaldo completo (.json) y un Excel con personas, fichajes y pedidos.', 6000);
+  } catch (e) { console.warn(e); toast('⚠️ No se pudo descargar (' + (e.code || e.message) + ')', 6000); }
+}
+
+/* ---------------- CLIENTE DE MUESTRA ---------------- */
+async function pdfMuestra(titulo) {
+  if (!window.PDFLib) await new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+  const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+  const d = await PDFDocument.create(), p = d.addPage([595, 842]), f = await d.embedFont(StandardFonts.HelveticaBold), g = await d.embedFont(StandardFonts.Helvetica);
+  p.drawRectangle({ x: 30, y: 770, width: 535, height: 46, color: rgb(0.09, 0.08, 0.19) });
+  p.drawText(titulo, { x: 44, y: 788, size: 14, font: f, color: rgb(1, 1, 1) });
+  p.drawText('Documento de muestra con datos inventados · Vista Humana', { x: 44, y: 730, size: 11, font: g, color: rgb(0.3, 0.3, 0.4) });
+  const u8 = await d.save(); let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+  return { b64: btoa(s), hash: await sha256Hex(u8) };
+}
+$('btnMuestra').onclick = async () => {
+  if (Object.values(S.pub).some((c) => c.muestra)) return toast('Ya tenés un cliente de muestra');
+  const B = window.__VH_SEED__; if (!B) return toast('No se pudo armar la muestra');
+  $('btnMuestra').disabled = true; toast('Armando la muestra…', 9000);
+  try {
+    let id = 'muestra-' + azar(2); while (S.pub[id]) id = 'muestra-' + azar(2);
+    const datos = JSON.parse(JSON.stringify(B.datos));
+    const plus = (dni) => DUENO_MAIL.replace('@', '+' + dni + '@');
+    datos.padron = Object.fromEntries(Object.entries(datos.usuarios).map(([dni, u]) => [dni, { mail: plus(dni), nombre: u.nombre, activo: true, ts: Date.now() }]));
+    const rec = await pdfMuestra('RECIBO DE HABERES · MUESTRA'), doc = await pdfMuestra('DOCUMENTO · MUESTRA');
+    datos.recibosPdf = {}; Object.entries(datos.recibos || {}).forEach(([dni, rs]) => { datos.recibosPdf[dni] = {}; Object.entries(rs || {}).forEach(([rid, r]) => { if (r.hash) r.hash = rec.hash; datos.recibosPdf[dni][rid] = rec.b64; }); });
+    datos.documentosPdf = {}; Object.entries(datos.documentos || {}).forEach(([did, d]) => { if (d.hash) d.hash = doc.hash; datos.documentosPdf[did] = doc.b64; });
+    const fich = {}; let entr = 0;
+    Object.values(datos.fichadas || {}).forEach((l) => Object.values(l || {}).forEach((m) => { if (m && m.tipo === 'entrada' && m.ts) { const d = new Date(m.ts); const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); fich[k] = (fich[k] || 0) + 1; entr++; } }));
+    let rT = 0, rF = 0; Object.values(datos.recibos || {}).forEach((rs) => Object.values(rs || {}).forEach((r) => { rT++; if (r.estado === 'firmado') rF++; }));
+    const nU = Object.keys(datos.usuarios).length;
+    datos.resumen = { ts: Date.now(), cargadas: nU, registradas: 0, esperando: 0, sinRegistrar: nU, recibosPct: rT ? Math.round(rF / rT * 100) : null, fich, usoKB: Math.round(JSON.stringify(datos).length / 1024), feed: [] };
+    const pub = { nom: 'Grupo Andina (muestra)', ciudad: 'Mendoza', c1: '#14365A', c2: '#DF4324', logo: '', est: 'prueba', tope: 40, vto: isoHoy(60), muestra: true, ts: TS(),
+      mods: Object.fromEntries(MODS.map(([k]) => [k, true])), empresas: [{ n: B.E_A, corto: 'Andina', conv: 'com', cuit: '30-00000001-0' }, { n: B.E_V, corto: 'Valle', conv: 'com', cuit: '30-00000002-0' }, { n: B.E_P, corto: 'Petro', conv: 'pet', cuit: '30-00000003-0' }] };
+    await db.ref('vh/maestro').update({ ['publico/' + id]: pub, ['clientes/' + id]: { admN: 'García, Laura (muestra)', admDni: '27336190', admM: plus('27336190'), muestra: true, creado: Date.now(), auto: false } });
+    await conSoporte(id, 'Armado del cliente de muestra con datos inventados', 'cambiar', 5, async () => {
+      const ups = {};
+      Object.entries(datos).forEach(([rama, v]) => { if (v && typeof v === 'object' && !Array.isArray(v)) Object.entries(v).forEach(([k2, v2]) => { ups[rama + '/' + k2] = v2; }); else ups[rama] = v; });
+      await CL(id).update(ups);
+    });
+    toast('Listo: muestra armada. La clave de todos es 1234; los mails son ' + DUENO_MAIL.replace('@', '+DNI@') + ' (te llegan a vos).', 9000);
+  } catch (e) { console.warn(e); toast('⚠️ No se pudo armar la muestra (' + (e.code || e.message) + ')', 7000); }
+  $('btnMuestra').disabled = false;
+};
+async function borrarCliente(cid) {
+  try {
+    await conSoporte(cid, 'Borrado del cliente de muestra', 'cambiar', 5, async () => {
+      const t = (await CL(cid).get()).val() || {};
+      for (const [rama, v] of Object.entries(t)) {
+        if (rama === 'auditoria') continue;   // el historial no se borra
+        const n2 = {}, n3 = {};
+        if (v && typeof v === 'object') Object.entries(v).forEach(([k2, v2]) => { n2[rama + '/' + k2] = null; if (v2 && typeof v2 === 'object') Object.keys(v2).forEach((k3) => { n3[rama + '/' + k2 + '/' + k3] = null; }); else n3[rama + '/' + k2] = null; });
+        else n2[rama] = null;
+        try { await CL(cid).update(n2); } catch (e) { await CL(cid).update(n3); }
+      }
+    });
+    await db.ref('vh/maestro').update({ ['publico/' + cid]: null, ['clientes/' + cid]: null, ['pagos/' + cid]: null, ['soporteLog/' + cid]: null });
+    volver(); toast('Muestra borrada');
+  } catch (e) { console.warn(e); toast('⚠️ No se pudo borrar (' + (e.code || e.message) + ')'); }
+}
+$('btnNuevo').onclick = () => abrir(null);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => { });
+</script>
+</body></html>

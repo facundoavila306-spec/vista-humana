@@ -365,7 +365,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
     <div style="height:18px"></div>
     <button class="btn" id="btnLogin">Ingresar</button>
     <button type="button" class="btn borde" id="btnRegistrarme" style="margin-top:8px">Es mi primera vez: registrarme</button>
-    <a href="#" id="lnkClaveAdmin" class="oculto" style="display:block;text-align:center;margin-top:10px;font-size:.82rem;color:var(--gris)">Soy el dueño de Vista Humana</a>
+    <a href="#" id="lnkClaveAdmin" class="oculto" style="display:none!important"></a>
       <button class="btn borde oculto" id="btnInstalar" style="margin-top:8px">📲 Instalar la app en este teléfono</button>
       <p class="nota oculto" id="hintIos" style="margin-top:8px;text-align:center">📲 Para instalarla en iPhone: tocá <b>Compartir</b> (el cuadradito con flecha) y elegí <b>"Agregar a pantalla de inicio"</b>.</p>
       <p class="nota credito">© 2026 Facundo Manuel Avila <br><a href="#" data-acerca>Créditos y licencias</a></p>
@@ -1230,7 +1230,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
   window.VH_CID = cid;
   const EMU = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   const stub = () => { const n = '§'; window.VHC = { id: '', nom: '', ciudad: '', empresas: [], nombres: [], mods: {}, emp: () => null, esPet: () => false, esPetClave: () => false, slot: () => n, convTxt: () => '', icono: () => '', modOn: () => true, yendo: true }; };
-  if (!cid) { stub(); location.replace('maestro.html' + location.search); return; }
+  if (!cid) { stub(); location.replace('entrar.html' + location.search); return; }
 
   // Lo que la app guarda en el teléfono, separado por cliente (un mismo celular puede usar dos)
   const ns = (k) => (typeof k === 'string' && /^(mps21_|vh_)/.test(k) && k !== 'vh_cid' && k.indexOf('@') < 0) ? k + '@' + cid : k;
@@ -1249,7 +1249,7 @@ body.vhn #btnFichar.vhn-bloq::before{background-image:url('data:image/svg+xml,%3
     } catch (e) { /* sin señal: vale lo guardado */ }
   }
   if (!pub) { try { pub = JSON.parse(lget('vh_pub@' + cid) || 'null'); } catch (e) { pub = null; } }
-  if (!pub) { stub(); location.replace('maestro.html?nf=' + encodeURIComponent(cid)); return; }
+  if (!pub) { stub(); location.replace('entrar.html?nf=' + encodeURIComponent(cid)); return; }
 
   const limpiar = (s) => String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '');
   const CONV = { com: 'CCT 130/75 · Comercio', pet: 'CCT 644/12 · Petroleros privados', uoc: 'CCT 76/75 · Construcción (UOCRA)', cam: 'CCT 40/89 · Camioneros', san: 'CCT 122/75 · Sanidad', fdc: 'Fuera de convenio' };
@@ -9964,7 +9964,7 @@ if ($('lnkClaveAdmin')) $('lnkClaveAdmin').onclick = (e) => { e.preventDefault()
 // Quién está administrando (para el encabezado del panel y, más adelante, la auditoría).
 let admQuien = null;
 $('btnAdminAcceso').onclick = () => {
-  location.href = 'maestro.html'; return;
+  return;
   modal(`
     <h3>Entrar como dueño</h3>
     <p class="nota">Te mandamos un enlace a tu mail. Al tocarlo entrás a RR.HH. en este aparato. El equipo de RR.HH. entra con su DNI y clave eligiendo "Admin".</p>
@@ -13691,7 +13691,7 @@ window.addEventListener('appinstalled', () => { const b = $('btnInstalar'); if (
 /* El cartelito de versión estaba escrito a mano ("v2.9.4") y quedó viejo hacía
    meses: Facundo lo leyó como la versión real y no coincidía con nada
    (08/09/2026). Ahora lo saca del service worker, que es la versión de verdad. */
-const APP_VER = '5.2.0';   // debe coincidir con VERSION del service-worker.js
+const APP_VER = '5.3.0';   // debe coincidir con VERSION del service-worker.js
 /* "Buscar actualización": borra la copia que el navegador guardó de la app (service worker y caché) y
    recarga. NO toca la sesión, las marcas pendientes ni nada de lo que vive en el teléfono. */
 async function actualizarVista() {
@@ -16977,7 +16977,7 @@ function a7CfgRender() {
     const admins = Object.entries(DB.usuarios || {}).filter(([, u]) => u && u.esAdmin && u.activo !== false).sort((a, b) => String(a[1].nombre).localeCompare(String(b[1].nombre)));
     const encs = []; equiposLista().forEach((e) => Object.keys(e.encargados || {}).forEach((d) => { if (DB.usuarios[d]) encs.push([d, e.nombre]); }));
     html += `<div class="a7-aviso az"><b>Quién puede hacer qué.</b> Los administradores entran con su DNI y clave al panel y ven todas las empresas. Los encargados solo autorizan pedidos de su equipo y ven quién de su gente está.</div>
-    <div class="a7-cols"><div><div class="a7-card"><h3>🛠️ Administradores <span class="n">${admins.length}</span></h3>${admins.length ? `<div class="a7-tw"><table class="a7-t"><tr><th>Persona</th><th class="a7-hc">Empresa</th><th>Rol</th><th>Puede</th></tr>${admins.map(([d, u]) => `<tr><td><div style="display:flex;align-items:center;gap:8px">${a7Av(d, true)}<b class="a7-nm">${esc(u.nombre)}</b></div></td><td class="a7-hc m">${esc(a7EmpCorto(d))}</td><td>Administrador</td><td class="w">Aprobar · editar personas · recibos · todas las empresas</td></tr>`).join('')}</table></div>` : a7Vacio('Ningún usuario es administrador todavía.')}<p class="a7-nota">Para nombrar o quitar administradores: Usuarios › ficha de la persona › "Nombrar administrador". El maestro "maestro" entra siempre.</p><div class="a7-acc" style="margin:10px 0 0"><button class="a7-btns az sm" id="a7CfgUsr">Ir a Usuarios</button></div></div></div>
+    <div class="a7-cols"><div><div class="a7-card"><h3>🛠️ Administradores <span class="n">${admins.length}</span></h3>${admins.length ? `<div class="a7-tw"><table class="a7-t"><tr><th>Persona</th><th class="a7-hc">Empresa</th><th>Rol</th><th>Puede</th></tr>${admins.map(([d, u]) => `<tr><td><div style="display:flex;align-items:center;gap:8px">${a7Av(d, true)}<b class="a7-nm">${esc(u.nombre)}</b></div></td><td class="a7-hc m">${esc(a7EmpCorto(d))}</td><td>Administrador</td><td class="w">Aprobar · editar personas · recibos · todas las empresas</td></tr>`).join('')}</table></div>` : a7Vacio('Ningún usuario es administrador todavía.')}<p class="a7-nota">Para nombrar o quitar administradores: Usuarios › ficha de la persona › "Nombrar administrador". </p><div class="a7-acc" style="margin:10px 0 0"><button class="a7-btns az sm" id="a7CfgUsr">Ir a Usuarios</button></div></div></div>
     <div><div class="a7-card"><h3>🧑‍🔧 Encargados <span class="n">${encs.length}</span></h3>${encs.length ? encs.map(([d, eq]) => `<div class="a7-pr">${a7Av(d, true)}<span style="flex:1">${esc(a7Nombre(d))}</span><span class="h">${esc(eq)} · solo su equipo</span></div>`).join('') : a7Vacio('Sin encargados: armá equipos en Equipos.')}<div class="a7-acc" style="margin:10px 0 0"><button class="a7-btns sm" id="a7CfgEq">Ir a Equipos</button></div></div></div></div>`;
   }
   if (a7CfgTab === 'avisos') {
@@ -18034,7 +18034,7 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
     try { await db.ref('vh/maestro/soporte/' + VHC.id).remove(); } catch (e) { }
     try { if (SOP.log) await db.ref('vh/maestro/soporteLog/' + VHC.id + '/' + SOP.log).update({ fin: firebase.database.ServerValue.TIMESTAMP, cambios: SOP.cambios }); } catch (e) { }
     try { borrarSesionAdm(); } catch (e) { }
-    document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;background:#171531;padding:20px;font-family:system-ui"><div style="background:#fff;border-radius:18px;padding:24px;max-width:420px;text-align:center"><h2 style="margin:0 0 8px">Saliste del soporte</h2><p style="color:#4A4766">${esc(VHC.nom)} · ${SOP.cambios} cambio(s). Quedó todo en su historial y su RR.HH. va a ver el aviso.</p><a href="maestro.html" style="display:inline-block;margin-top:12px;background:#DF4324;color:#fff;border-radius:11px;padding:11px 16px;font-weight:800;text-decoration:none">Volver al panel maestro</a></div></div>`;
+    document.body.innerHTML = `<div style="min-height:100vh;display:grid;place-items:center;background:#171531;padding:20px;font-family:system-ui"><div style="background:#fff;border-radius:18px;padding:24px;max-width:420px;text-align:center"><h2 style="margin:0 0 8px">Saliste del soporte</h2><p style="color:#4A4766">${esc(VHC.nom)} · ${SOP.cambios} cambio(s). Quedó todo en su historial y su RR.HH. va a ver el aviso.</p><button onclick="window.close()" style="display:inline-block;margin-top:12px;background:#DF4324;color:#fff;border:0;border-radius:11px;padding:11px 16px;font-weight:800;cursor:pointer">Cerrar esta pestaña</button></div></div>`;
   }
   async function entrarSoporte() {
     const a = auth();
@@ -18142,6 +18142,25 @@ new MutationObserver(ocultar).observe(document.body,{childList:true,subtree:true
   };
   const _rt = window.renderAdmTodo;
   if (_rt) window.renderAdmTodo = function () { const r = _rt.apply(this, arguments); try { pintarAvisos(); } catch (e) { } return r; };
+
+  /* MUESTRA: cinta y entrada en un toque (empleada, encargado, RR.HH.) */
+  if (VHC.muestra) document.addEventListener('DOMContentLoaded', () => {
+    const cinta = document.createElement('div'); cinta.id = 'vhCintaMuestra'; cinta.textContent = 'MUESTRA · datos inventados'; cinta.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9000;background:#B45309;color:#fff;font-weight:800;font-size:.62rem;letter-spacing:.12em;padding:2px 10px;border-radius:0 0 8px 8px;pointer-events:none'; document.body.appendChild(cinta);
+    const btn = $c('btnLogin'); if (!btn) return;
+    const caja = document.createElement('div'); caja.className = 'pista-demo'; caja.id = 'vhMuestraBox';
+    caja.innerHTML = '<b>Muestra con datos inventados.</b> Entrá con un toque:'
+      + '<span style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px">'
+      + '<button type="button" class="btn borde" style="width:auto;padding:8px 12px" data-mu="30111222">Empleada</button>'
+      + '<button type="button" class="btn borde" style="width:auto;padding:8px 12px" data-mu="28904117">Encargado</button>'
+      + '<button type="button" class="btn borde" style="width:auto;padding:8px 12px" data-mu="27336190" data-adm="1">RR.HH.</button></span>'
+      + '<span style="display:block;margin-top:8px">O con cualquier DNI de la muestra y la clave <b>1234</b>.</span>';
+    const reg = $c('btnRegistrarme'); (reg || btn).insertAdjacentElement('afterend', caja);
+    caja.querySelectorAll('[data-mu]').forEach((b) => { b.onclick = () => {
+      if (b.dataset.adm) $c('modoAdmin').click(); else $c('modoEmpleado').click();
+      $c('logDni').value = b.dataset.mu; $c('logPin').value = '1234';
+      setTimeout(() => $c('btnLogin').click(), 50);
+    }; });
+  });
 
   /* Tope de empleados del plan */
   window.vhTopeOk = function (nuevos) {

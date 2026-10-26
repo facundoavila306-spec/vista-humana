@@ -1,0 +1,33 @@
+{
+ "lang": "es-AR",
+ "dir": "ltr",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#171531",
+ "theme_color": "#DF4324",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "name": "Vista Humana · Panel maestro",
+ "short_name": "VH Maestro",
+ "id": "./panel-afkn0vt4o6.html",
+ "start_url": "./panel-afkn0vt4o6.html",
+ "scope": "./panel-afkn0vt4o6.html"
+}
